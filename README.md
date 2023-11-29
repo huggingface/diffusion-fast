@@ -11,7 +11,7 @@ nvidia-docker run -it --user root --rm spsayakpaul/sdxl-fast-compile:nightly
 
 ## Some commands
 
-For building and pushing the Docker image (assuming you're authenticated already via `docker login`):
+**For building and pushing the Docker image (assuming you're authenticated already via `docker login`)**:
 
 ```bash
 docker build -f Dockerfile -t spsayakpaul/sdxl-fast-compile:nightly --compress .
@@ -20,7 +20,7 @@ docker push spsayakpaul/sdxl-fast-compile:nightly
 
 _(Change `spsayakpaul/sdxl-fast-compile:nightly` accordingly)_
 
-For bulk-launching benchmark runs and pushing a nice plot:
+**For bulk-launching benchmark runs and pushing a nice plot**:
 
 ```bash
 python run_benchmark.py && \
@@ -46,4 +46,13 @@ Then run:
 
 ```bash
 python run_benchmark.py --run_compile --compile_mode=max-autotune --do_quant
+```
+
+**For bulk-profiling kernel traces**:
+
+```bash
+python run_profile.py && \
+    python run_profile.py --run_compile && \
+    python run_profile.py --run_compile --compile_mode=max-autotune && \
+    python run_profile.py --run_compile --compile_mode=max-autotune --change_comp_config
 ```
