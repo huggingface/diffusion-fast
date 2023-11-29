@@ -45,7 +45,7 @@ def generate_csv_dict(
 ) -> Dict[str, Union[str, bool, float]]:
     """Packs benchmarking data into a dictionary for latter serialization."""
     if not args.run_compile:
-        compile_mode = "Not Applicable"
+        compile_mode = "NA"
     else:
         compile_mode = args.compile_mode
     
