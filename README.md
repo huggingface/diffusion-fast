@@ -33,3 +33,17 @@ python run_benchmark.py && \
 Specifying `--push_to_hub` requires you to run `huggingface-cli login` before hand. 
 
 _(Change the `REPO_ID` variable in the `prepare_plot.py` script accordingly)_
+
+To run benchmarking with `--do_quant` install `torchao` first:
+
+```bash
+git clone https://github.com/pytorch-labs/ao
+cd ao
+python setup.py install
+```
+
+Then run:
+
+```bash
+python run_benchmark.py --run_compile --compile_mode=max-autotune --do_quant
+```
