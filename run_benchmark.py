@@ -50,6 +50,9 @@ if __name__ == "__main__":
     parser.add_argument("--run_compile", action="store_true")
     parser.add_argument("--compile_mode", type=str, default="reduce-overhead", choices=["reduce-overhead", "max-autotune"])
     args = parser.parse_args()
+
+    if not args.run_compile:
+        args.compile_mode = "NA"
     
     data_dict = main(args)
 
