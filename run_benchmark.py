@@ -30,10 +30,9 @@ def load_pipeline(args):
             torch._inductor.config.coordinate_descent_tuning = True
 
         if args.do_quant:
-            from torchao.quantization import quant_api
-
+            from torchao.quantization import apply_dynamic_quant
+            apply_dynamic_quant(pipe.unet)
             torch._inductor.config.force_fuse_int_mm_with_mul = True
-            quant_api.change_linear_weights_to_int8_dqtensors(pipe.unet)
 
         pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode, fullgraph=True)
 
