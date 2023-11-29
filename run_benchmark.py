@@ -4,7 +4,9 @@ torch.set_float32_matmul_precision("high")
 from diffusers import DiffusionPipeline
 import argparse
 
-from .utils import benchmark_fn, bytes_to_giga_bytes, generate_csv_dict, write_to_csv
+import sys 
+sys.path.append(".")
+from utils import benchmark_fn, bytes_to_giga_bytes, generate_csv_dict, write_to_csv
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"
