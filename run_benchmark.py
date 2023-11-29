@@ -31,10 +31,14 @@ def load_pipeline(args):
 
         if args.do_quant:
             from torchao.quantization import apply_dynamic_quant
+            
             apply_dynamic_quant(pipe.unet)
             torch._inductor.config.force_fuse_int_mm_with_mul = True
 
-        pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode, fullgraph=True)
+        if args.compile_mode == "max-autotune":
+            pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode)
+        else:
+            pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode, fullgraph=True)
 
     pipe.set_progress_bar_config(disable=True)
     return pipe
