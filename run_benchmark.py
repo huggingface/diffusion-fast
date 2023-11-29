@@ -36,6 +36,8 @@ def apply_dynamic_quant_fn(m):
 
 def load_pipeline(args):
     pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=torch.float16, use_safetensors=True)
+    if args.upcast_vae:
+        pipe.upcast_vae()
     pipe = pipe.to("cuda")
 
     if args.compile_unet:
@@ -104,6 +106,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--num_inference_steps", type=int, default=30)
+    parser.add_argument("--upcast_vae", action="store_true")
     parser.add_argument("--compile_unet", action="store_true")
     parser.add_argument("--compile_vae", action="store_true")
     parser.add_argument(
@@ -120,6 +123,6 @@ if __name__ == "__main__":
 
     name = (
         CKPT_ID.replace("/", "_")
-        + f"-bs@{args.batch_size}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.csv"
+        + f"-bs@{args.batch_size}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.csv"
     )
     write_to_csv(name, data_dict)

@@ -9,6 +9,7 @@ import torch.utils.benchmark as benchmark
 BENCHMARK_FIELDS = [
     "pipeline_cls",
     "ckpt_id",
+    "upcast_vae",
     "batch_size",
     "num_inference_steps",
     "compile_unet",
@@ -51,6 +52,7 @@ def generate_csv_dict(
     data_dict = {
         "pipeline_cls": pipeline_cls,
         "ckpt_id": ckpt,
+        "upcast_vae": args.upcast_vae,
         "batch_size": args.batch_size,
         "num_inference_steps": args.num_inference_steps,
         "compile_unet": args.compile_unet,
