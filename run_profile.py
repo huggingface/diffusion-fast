@@ -10,33 +10,10 @@ from diffusers import DiffusionPipeline  # noqa: E402
 
 
 sys.path.append(".")
+from .run_benchmark import load_pipeline
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"
-
-
-def load_pipeline(args):
-    pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=torch.float16, use_safetensors=True)
-    pipe = pipe.to("cuda")
-
-    if args.run_compile:
-        pipe.unet.to(memory_format=torch.channels_last)
-        print("Run torch compile")
-
-        if args.compile_mode == "max-autotune" and args.change_comp_config:
-            torch._inductor.config.conv_1x1_as_mm = True
-            torch._inductor.config.coordinate_descent_tuning = True
-
-        if args.do_quant:
-            from torchao.quantization import quant_api
-
-            torch._inductor.config.force_fuse_int_mm_with_mul = True
-            quant_api.change_linear_weights_to_int8_dqtensors(pipe.unet)
-
-        pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode, fullgraph=True)
-
-    pipe.set_progress_bar_config(disable=True)
-    return pipe
 
 
 def run_inference(pipe, args):
