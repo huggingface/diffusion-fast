@@ -1,6 +1,6 @@
 FROM nvidia/cuda:12.1.0-runtime-ubuntu20.04
 
-export DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt update && \
     apt install -y bash \
