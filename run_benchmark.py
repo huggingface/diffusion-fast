@@ -26,12 +26,11 @@ def load_pipeline(args):
 
         if args.do_quant:
             from torchao.quantization import quant_api
-            
+
             torch._inductor.config.force_fuse_int_mm_with_mul = True
-            unet = quant_api.change_linear_weights_to_int8_dqtensors(pipe.unet)
-        else:
-            unet  = pipe.unet
-        pipe.unet = torch.compile(unet, mode=args.compile_mode, fullgraph=True)
+            quant_api.change_linear_weights_to_int8_dqtensors(pipe.unet)
+        
+        pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode, fullgraph=True)
 
     pipe.set_progress_bar_config(disable=True)
     return pipe
