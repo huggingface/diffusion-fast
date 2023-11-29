@@ -44,13 +44,18 @@ def generate_csv_dict(
     pipeline_cls: str, ckpt: str, args, time: float, memory: float
 ) -> Dict[str, Union[str, bool, float]]:
     """Packs benchmarking data into a dictionary for latter serialization."""
+    if not args.run_compile:
+        compile_mode = "Not Applicable"
+    else:
+        compile_mode = args.compile_mode
+    
     data_dict = {
         "pipeline_cls": pipeline_cls,
         "ckpt_id": ckpt,
         "batch_size": args.batch_size,
         "num_inference_steps": args.num_inference_steps,
         "run_compile": args.run_compile,
-        "compile_mode": args.compile_mode,
+        "compile_mode": compile_mode,
         "time (secs)":time,
         "memory (gbs)": memory,
         "actual_gpu_memory (gbs)": f"{(TOTAL_GPU_MEMORY):.3f}",
