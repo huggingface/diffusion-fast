@@ -2,10 +2,13 @@ import glob
 import pandas as pd 
 import matplotlib.pyplot as plt
 import argparse
+from huggingface_hub import upload_file
 
 import sys 
 sys.path.append(".")
 from utils import collate_csv
+
+REPO_ID = "sayakpaul/sample-datasets"
 
 def prepare_plot(df, args):
     cmap = plt.cm.get_cmap('viridis', len(df))  # Using 'viridis' colormap, change as needed
@@ -24,6 +27,9 @@ def prepare_plot(df, args):
     plt.tight_layout()
     plt.savefig(args.plot_file_path)
 
+    if args.push_to_hub:
+        upload_file(repo_id=REPO_ID, path_in_repo=args.plot_file_path, path_or_fileobj=args.plot_file_path, repo_type="dataset")
+
 
 def main(args):
     all_csvs = sorted(glob.glob(f"{args.base_path}/*.csv"))
@@ -38,6 +44,7 @@ if __name__ == "__main__":
     parser.add_argument("--base_path", type=str, default=".")
     parser.add_argument("--final_csv_filename", type=str, default="collated_results.csv")
     parser.add_argument("--plot_file_path", type=str, default="results.png")
+    parser.add_argument("--push_to_hub", action="store_true")
     args = parser.parse_args()
 
     main(args)
