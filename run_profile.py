@@ -44,7 +44,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--num_inference_steps", type=int, default=30)
-    parser.add_argument("--run_compile", action="store_true")
+    parser.add_argument("--compile_unet", action="store_true")
+    parser.add_argument("--compile_vae", action="store_true")
     parser.add_argument(
         "--compile_mode", type=str, default="reduce-overhead", choices=["reduce-overhead", "max-autotune"]
     )

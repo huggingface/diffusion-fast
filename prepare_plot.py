@@ -26,7 +26,7 @@ def prepare_plot(df, args):
             i,
             df_row["time (secs)"],
             color=color,
-            label=f'{df_row["run_compile"]}, {df_row["compile_mode"]}, {df_row["change_comp_config"]}, {df_row["do_quant"]}',
+            label=f'{df_row["compile_unet"]}, {df_row["compile_vae"]}, {df_row["compile_mode"]}, {df_row["change_comp_config"]}, {df_row["do_quant"]}',
         )
         plt.text(
             bar[0].get_x() + bar[0].get_width() / 2,
@@ -39,7 +39,10 @@ def prepare_plot(df, args):
     plt.ylabel("Time (secs)")
     plt.title("Benchmarking Results")
     plt.xticks(rotation=45)
-    plt.legend(title="Compile / Mode / Change Comp. Sett. / Quant", bbox_to_anchor=(1.05, 1), loc="upper left")
+    plt.legend(
+        title="Compile UNet / Compile VAE / Mode / Change Comp. Sett. / Quant",
+        bbox_to_anchor=(1.05, 1), loc="upper left"
+    )
 
     plt.tight_layout()
     plt.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)

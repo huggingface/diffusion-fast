@@ -38,9 +38,9 @@ def load_pipeline(args):
     pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=torch.float16, use_safetensors=True)
     pipe = pipe.to("cuda")
 
-    if args.run_compile:
+    if args.compile_unet:
         pipe.unet.to(memory_format=torch.channels_last)
-        print("Run torch compile")
+        print("Compile UNet")
 
         if args.compile_mode == "max-autotune" and args.change_comp_config:
             torch._inductor.config.conv_1x1_as_mm = True
@@ -54,6 +54,23 @@ def load_pipeline(args):
             pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode)
         else:
             pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode, fullgraph=True)
+
+    if args.compile_vae:
+        pipe.vae.to(memory_format=torch.channels_last)
+        print("Compile VAE")
+
+        if args.compile_mode == "max-autotune" and args.change_comp_config:
+            torch._inductor.config.conv_1x1_as_mm = True
+            torch._inductor.config.coordinate_descent_tuning = True
+
+        if args.do_quant:
+            pipe.vae.apply(apply_dynamic_quant_fn)
+            torch._inductor.config.force_fuse_int_mm_with_mul = True
+
+        if args.compile_mode == "max-autotune":
+            pipe.vae = torch.compile(pipe.vae, mode=args.compile_mode)
+        else:
+            pipe.vae = torch.compile(pipe.vae, mode=args.compile_mode, fullgraph=True)
 
     pipe.set_progress_bar_config(disable=True)
     return pipe
@@ -87,7 +104,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--num_inference_steps", type=int, default=30)
-    parser.add_argument("--run_compile", action="store_true")
+    parser.add_argument("--compile_unet", action="store_true")
+    parser.add_argument("--compile_vae", action="store_true")
     parser.add_argument(
         "--compile_mode", type=str, default="reduce-overhead", choices=["reduce-overhead", "max-autotune"]
     )
