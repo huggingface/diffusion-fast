@@ -6,7 +6,7 @@ import argparse
 
 import sys 
 sys.path.append(".")
-from utils import benchmark_fn, bytes_to_giga_bytes, generate_csv_dict, write_to_csv
+from utils import BENCHMARK_FIELDS, benchmark_fn, bytes_to_giga_bytes, generate_csv_dict, write_to_csv
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"
@@ -38,10 +38,10 @@ def main(args) -> dict:
     time = benchmark_fn(run_inference, pipeline, args)  # in seconds.
     memory = bytes_to_giga_bytes(torch.cuda.max_memory_allocated())  # in GBs.
     
-    csv_dict = generate_csv_dict(
+    data_dict = generate_csv_dict(
         pipeline_cls=str(pipeline.__class__.__name__), ckpt=CKPT_ID, args=args, time=time, memory=memory,
     )
-    return csv_dict
+    return data_dict
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -52,6 +52,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     data_dict = main(args)
+    print(data_dict.keys())
+    print(f"\n{BENCHMARK_FIELDS}")
 
     name = (
         CKPT_ID.replace("/", "_")
