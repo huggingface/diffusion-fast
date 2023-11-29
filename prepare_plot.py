@@ -17,9 +17,8 @@ def prepare_plot(df, args):
 
     for i in range(len(df)):
         color = cmap(i)
-        plt.bar(df.iloc[i]['pipeline_cls'], df.iloc[i]['time (secs)'], color=color, label=f'{df.iloc[i]["run_compile"]}, {df.iloc[i]["compile_mode"]}')
-
-    plt.xlabel('Pipeline Class')
+        plt.bar(i, df.iloc[i]['time (secs)'], color=color, label=f'{df.iloc[i]["run_compile"]}, {df.iloc[i]["compile_mode"]}')
+    
     plt.ylabel('Time (secs)')
     plt.title('Benchmarking Results')
     plt.xticks(rotation=45)
@@ -29,7 +28,7 @@ def prepare_plot(df, args):
 
     if args.push_to_hub:
         upload_file(repo_id=REPO_ID, path_in_repo=args.plot_file_path, path_or_fileobj=args.plot_file_path, repo_type="dataset")
-
+        print(f"Plot successfully uploaded. Find it here: https://huggingface.co/datasets/{REPO_ID}/blob/main/{args.plot_file_path}")
 
 def main(args):
     all_csvs = sorted(glob.glob(f"{args.base_path}/*.csv"))
