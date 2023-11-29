@@ -17,6 +17,23 @@ CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"
 
 
+def apply_dynamic_quant_fn(m):
+    from torchao.quantization import apply_dynamic_quant
+
+    if isinstance(m, (torch.nn.Conv2d, torch.nn.Linear)):
+        if m.weight.size(1) <= 1280 and m.weight.size(0) <= 1280:
+            return m
+        if m.weight.size(1) == 640 and m.weight.size(0) == 5120:
+            return m
+        if m.weight.size(1) == 2048 and m.weight.size(0) == 2560:
+            return m
+        if m.weight.size(1) == 2048 and m.weight.size(0) == 1280:
+            return m 
+        else:
+            apply_dynamic_quant(m)
+            return m
+
+
 def load_pipeline(args):
     pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=torch.float16, use_safetensors=True)
     pipe = pipe.to("cuda")
@@ -32,7 +49,7 @@ def load_pipeline(args):
         if args.do_quant:
             from torchao.quantization import apply_dynamic_quant
             
-            apply_dynamic_quant(pipe.unet)
+            pipe.unet.apply(apply_dynamic_quant_fn)
             torch._inductor.config.force_fuse_int_mm_with_mul = True
 
         if args.compile_mode == "max-autotune":
