@@ -52,8 +52,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     data_dict = main(args)
-    print(data_dict.keys())
-    print(f"\n{BENCHMARK_FIELDS}")
 
     name = (
         CKPT_ID.replace("/", "_")

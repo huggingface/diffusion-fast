@@ -10,7 +10,7 @@ BENCHMARK_FIELDS = [
     "batch_size",
     "num_inference_steps",
     "run_compile",
-    "compile_mode"
+    "compile_mode",
     "time (secs)",
     "memory (gbs)",
     "actual_gpu_memory (gbs)",
