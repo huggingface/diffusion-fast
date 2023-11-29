@@ -16,11 +16,9 @@ RUN apt update && \
     python3.8-venv && \
     rm -rf /var/lib/apt/lists
 
-# make sure to use venv
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# pre-install the heavy dependencies (these can later be overridden by the deps from setup.py)
 RUN python3 -m pip install --no-cache-dir --upgrade pip && \
     python3 -m pip install --no-cache-dir --pre torch --index-url https://download.pytorch.org/whl/nightly/cu121 && \
     python3 -m pip install --no-cache-dir \
