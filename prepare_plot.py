@@ -1,17 +1,21 @@
-import glob
-import pandas as pd 
-import matplotlib.pyplot as plt
 import argparse
+import glob
+import sys
+
+import matplotlib.pyplot as plt
+import pandas as pd
 from huggingface_hub import upload_file
 
-import sys 
+
 sys.path.append(".")
-from utils import collate_csv # noqa: E402
+from utils import collate_csv  # noqa: E402
+
 
 REPO_ID = "sayakpaul/sample-datasets"
 
+
 def prepare_plot(df, args):
-    cmap = plt.cm.get_cmap('viridis', len(df)) 
+    cmap = plt.cm.get_cmap("viridis", len(df))
 
     plt.figure(figsize=(10, 6))
 
@@ -20,33 +24,36 @@ def prepare_plot(df, args):
         df_row = df.iloc[i]
         bar = plt.bar(
             i,
-            df_row['time (secs)'],
+            df_row["time (secs)"],
             color=color,
-            label=f'{df_row["run_compile"]}, {df_row["compile_mode"]}, {df_row["change_comp_config"]}, {df_row["do_quant"]}'
+            label=f'{df_row["run_compile"]}, {df_row["compile_mode"]}, {df_row["change_comp_config"]}, {df_row["do_quant"]}',
         )
         plt.text(
-            bar[0].get_x() + bar[0].get_width() / 2, bar[0].get_height(),
-            f'{df.iloc[i]["time (secs)"]:.2f}', 
-            ha='center', va='bottom'
+            bar[0].get_x() + bar[0].get_width() / 2,
+            bar[0].get_height(),
+            f'{df.iloc[i]["time (secs)"]:.2f}',
+            ha="center",
+            va="bottom",
         )
-        
-    plt.ylabel('Time (secs)')
-    plt.title('Benchmarking Results')
+
+    plt.ylabel("Time (secs)")
+    plt.title("Benchmarking Results")
     plt.xticks(rotation=45)
-    plt.legend(
-        title='Compile / Mode / Change Comp. Sett. / Quant',
-        bbox_to_anchor=(1.05, 1),
-        loc='upper left'
-    )  
-    
+    plt.legend(title="Compile / Mode / Change Comp. Sett. / Quant", bbox_to_anchor=(1.05, 1), loc="upper left")
+
     plt.tight_layout()
-    plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
+    plt.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)
 
     plt.savefig(args.plot_file_path)
 
     if args.push_to_hub:
-        upload_file(repo_id=REPO_ID, path_in_repo=args.plot_file_path, path_or_fileobj=args.plot_file_path, repo_type="dataset")
-        print(f"Plot successfully uploaded. Find it here: https://huggingface.co/datasets/{REPO_ID}/blob/main/{args.plot_file_path}")
+        upload_file(
+            repo_id=REPO_ID, path_in_repo=args.plot_file_path, path_or_fileobj=args.plot_file_path, repo_type="dataset"
+        )
+        print(
+            f"Plot successfully uploaded. Find it here: https://huggingface.co/datasets/{REPO_ID}/blob/main/{args.plot_file_path}"
+        )
+
 
 def main(args):
     all_csvs = sorted(glob.glob(f"{args.base_path}/*.csv"))
@@ -65,6 +72,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args)
-    
-
-

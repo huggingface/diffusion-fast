@@ -1,12 +1,15 @@
-import torch 
+import torch
+
+
 torch.set_float32_matmul_precision("high")
 
-from diffusers import DiffusionPipeline # noqa: E402
-import argparse # noqa: E402
+import argparse  # noqa: E402
+import sys  # noqa: E402
 
-import sys # noqa: E402
+from diffusers import DiffusionPipeline  # noqa: E402
+
+
 sys.path.append(".")
-from utils import benchmark_fn, bytes_to_giga_bytes, generate_csv_dict, write_to_csv # noqa: E402
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"
@@ -19,27 +22,27 @@ def load_pipeline(args):
     if args.run_compile:
         pipe.unet.to(memory_format=torch.channels_last)
         print("Run torch compile")
-        
+
         if args.compile_mode == "max-autotune" and args.change_comp_config:
-            torch._inductor.config.conv_1x1_as_mm = True 
-            torch._inductor.config.coordinate_descent_tuning = True 
+            torch._inductor.config.conv_1x1_as_mm = True
+            torch._inductor.config.coordinate_descent_tuning = True
 
         if args.do_quant:
             from torchao.quantization import quant_api
 
             torch._inductor.config.force_fuse_int_mm_with_mul = True
             quant_api.change_linear_weights_to_int8_dqtensors(pipe.unet)
-        
+
         pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode, fullgraph=True)
 
     pipe.set_progress_bar_config(disable=True)
     return pipe
 
+
 def run_inference(pipe, args):
     with torch.profiler.profile(
-            activities=[torch.profiler.ProfilerActivity.CPU,
-                        torch.profiler.ProfilerActivity.CUDA],
-            record_shapes=True) as prof:
+        activities=[torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.CUDA], record_shapes=True
+    ) as prof:
         _ = pipe(
             prompt=PROMPT,
             num_inference_steps=args.num_inference_steps,
@@ -53,9 +56,11 @@ def run_inference(pipe, args):
     prof.export_chrome_trace(path)
     return path
 
+
 def main(args) -> dict:
     pipeline = load_pipeline(args)
     run_inference(pipeline, args)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -71,8 +76,6 @@ if __name__ == "__main__":
 
     if not args.run_compile:
         args.compile_mode = "NA"
-    
+
     trace_path = main(args)
     print(f"Trace generated at: {trace_path}")
-
-    

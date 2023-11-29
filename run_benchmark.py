@@ -1,12 +1,17 @@
-import torch 
+import torch
+
+
 torch.set_float32_matmul_precision("high")
 
-from diffusers import DiffusionPipeline # noqa: E402
-import argparse # noqa: E402
+import argparse  # noqa: E402
+import sys  # noqa: E402
 
-import sys # noqa: E402
+from diffusers import DiffusionPipeline  # noqa: E402
+
+
 sys.path.append(".")
-from utils import benchmark_fn, bytes_to_giga_bytes, generate_csv_dict, write_to_csv # noqa: E402
+from utils import benchmark_fn, bytes_to_giga_bytes, generate_csv_dict, write_to_csv  # noqa: E402
+
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"
@@ -19,21 +24,22 @@ def load_pipeline(args):
     if args.run_compile:
         pipe.unet.to(memory_format=torch.channels_last)
         print("Run torch compile")
-        
+
         if args.compile_mode == "max-autotune" and args.change_comp_config:
-            torch._inductor.config.conv_1x1_as_mm = True 
-            torch._inductor.config.coordinate_descent_tuning = True 
+            torch._inductor.config.conv_1x1_as_mm = True
+            torch._inductor.config.coordinate_descent_tuning = True
 
         if args.do_quant:
             from torchao.quantization import quant_api
 
             torch._inductor.config.force_fuse_int_mm_with_mul = True
             quant_api.change_linear_weights_to_int8_dqtensors(pipe.unet)
-        
+
         pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode, fullgraph=True)
 
     pipe.set_progress_bar_config(disable=True)
     return pipe
+
 
 def run_inference(pipe, args):
     _ = pipe(
@@ -42,16 +48,22 @@ def run_inference(pipe, args):
         num_images_per_prompt=args.batch_size,
     )
 
+
 def main(args) -> dict:
     pipeline = load_pipeline(args)
 
     time = benchmark_fn(run_inference, pipeline, args)  # in seconds.
     memory = bytes_to_giga_bytes(torch.cuda.max_memory_allocated())  # in GBs.
-    
+
     data_dict = generate_csv_dict(
-        pipeline_cls=str(pipeline.__class__.__name__), ckpt=CKPT_ID, args=args, time=time, memory=memory,
+        pipeline_cls=str(pipeline.__class__.__name__),
+        ckpt=CKPT_ID,
+        args=args,
+        time=time,
+        memory=memory,
     )
     return data_dict
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -67,7 +79,7 @@ if __name__ == "__main__":
 
     if not args.run_compile:
         args.compile_mode = "NA"
-    
+
     data_dict = main(args)
 
     name = (
@@ -75,4 +87,3 @@ if __name__ == "__main__":
         + f"-bs@{args.batch_size}-steps@{args.num_inference_steps}-compile@{args.run_compile}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.csv"
     )
     write_to_csv(name, data_dict)
-    

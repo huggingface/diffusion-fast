@@ -1,8 +1,10 @@
+import csv
+import gc
+from typing import Dict, List, Union
+
 import torch
 import torch.utils.benchmark as benchmark
-import gc
-from typing import Union, Dict, List
-import csv
+
 
 BENCHMARK_FIELDS = [
     "pipeline_cls",
@@ -18,7 +20,6 @@ BENCHMARK_FIELDS = [
     "actual_gpu_memory (gbs)",
 ]
 TOTAL_GPU_MEMORY = torch.cuda.get_device_properties(0).total_memory / (1024**3)
-
 
 
 def flush():
@@ -55,11 +56,12 @@ def generate_csv_dict(
         "compile_mode": args.compile_mode,
         "change_comp_config": args.change_comp_config,
         "do_quant": args.do_quant,
-        "time (secs)":time,
+        "time (secs)": time,
         "memory (gbs)": memory,
         "actual_gpu_memory (gbs)": f"{(TOTAL_GPU_MEMORY):.3f}",
     }
     return data_dict
+
 
 def write_to_csv(file_name: str, data_dict: Dict[str, Union[str, bool, float]]):
     """Serializes a dictionary into a CSV file."""
