@@ -37,7 +37,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--base_path", type=str, default=".")
     parser.add_argument("--final_csv_filename", type=str, default="collated_results.csv")
-    parser.add_argument("--plot_file_path", action="results.png")
+    parser.add_argument("--plot_file_path", type=str, default="results.png")
     args = parser.parse_args()
 
     main(args)
