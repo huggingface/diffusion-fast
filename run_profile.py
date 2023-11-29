@@ -36,22 +36,26 @@ def load_pipeline(args):
     return pipe
 
 def run_inference(pipe, args):
-    _ = pipe(
-        prompt=PROMPT,
-        num_inference_steps=args.num_inference_steps,
-        num_images_per_prompt=args.batch_size,
+    with torch.profiler.profile(
+            activities=[torch.profiler.ProfilerActivity.CPU,
+                        torch.profiler.ProfilerActivity.CUDA],
+            record_shapes=True) as prof:
+        _ = pipe(
+            prompt=PROMPT,
+            num_inference_steps=args.num_inference_steps,
+            num_images_per_prompt=args.batch_size,
+        )
+
+    path = (
+        CKPT_ID.replace("/", "_")
+        + f"-bs@{args.batch_size}-steps@{args.num_inference_steps}-compile@{args.run_compile}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
     )
+    prof.export_chrome_trace(path)
+    return path
 
 def main(args) -> dict:
     pipeline = load_pipeline(args)
-
-    time = benchmark_fn(run_inference, pipeline, args)  # in seconds.
-    memory = bytes_to_giga_bytes(torch.cuda.max_memory_allocated())  # in GBs.
-    
-    data_dict = generate_csv_dict(
-        pipeline_cls=str(pipeline.__class__.__name__), ckpt=CKPT_ID, args=args, time=time, memory=memory,
-    )
-    return data_dict
+    run_inference(pipeline, args)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -68,11 +72,7 @@ if __name__ == "__main__":
     if not args.run_compile:
         args.compile_mode = "NA"
     
-    data_dict = main(args)
+    trace_path = main(args)
+    print(f"Trace generated at: {trace_path}")
 
-    name = (
-        CKPT_ID.replace("/", "_")
-        + f"-bs@{args.batch_size}-steps@{args.num_inference_steps}-compile@{args.run_compile}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.csv"
-    )
-    write_to_csv(name, data_dict)
     
