@@ -23,9 +23,10 @@ _(Change `spsayakpaul/sdxl-fast-compile:nightly` accordingly)_
 For bulk-launching benchmark runs and pushing a nice plot:
 
 ```bash
-python run_benchmark.py --run_compile --compile_mode=max-autotune && \
-    python run_benchmark.py && \
+python run_benchmark.py && \
     python run_benchmark.py --run_compile && \
+    python run_benchmark.py --run_compile --compile_mode=max-autotune && \
+    python run_benchmark.py --run_compile --compile_mode=max-autotune --change_comp_config && \
     python prepare_plot.py --push_to_hub
 ```
 

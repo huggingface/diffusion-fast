@@ -20,11 +20,13 @@ def load_pipeline(args):
     if args.run_compile:
         pipe.unet.to(memory_format=torch.channels_last)
         print("Run torch compile")
-        if args.compile_mode == "max-autotune":
+        
+        if args.compile_mode == "max-autotune" and args.change_comp_config:
             torch._inductor.config.conv_1x1_as_mm = True 
             torch._inductor.config.coordinate_descent_tuning = True 
 
         if args.do_quant:
+            torch._inductor.config.force_fuse_int_mm_with_mul = True
             unet = quant_api.change_linear_weights_to_int8_dqtensors(pipe.unet)
         else:
             unet  = pipe.unet

@@ -17,11 +17,12 @@ def prepare_plot(df, args):
 
     for i in range(len(df)):
         color = cmap(i)
+        df_row = df.iloc[i]
         bar = plt.bar(
             i,
-            df.iloc[i]['time (secs)'],
+            df_row['time (secs)'],
             color=color,
-            label=f'{df.iloc[i]["run_compile"]}, {df.iloc[i]["compile_mode"]}'
+            label=f'{df_row["run_compile"]}, {df_row["compile_mode"]}, {df_row["change_comp_config"]}, {df_row["do_quant"]}'
         )
         plt.text(
             bar[0].get_x() + bar[0].get_width() / 2, bar[0].get_height(),
@@ -32,7 +33,11 @@ def prepare_plot(df, args):
     plt.ylabel('Time (secs)')
     plt.title('Benchmarking Results')
     plt.xticks(rotation=45)
-    plt.legend(title='Run Compile / Compile Mode', bbox_to_anchor=(1.05, 1), loc='upper left')  
+    plt.legend(
+        title='Compile / Mode / Change Comp. Sett. / Quant',
+        bbox_to_anchor=(1.05, 1),
+        loc='upper left'
+    )  
     
     plt.tight_layout()
     plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
