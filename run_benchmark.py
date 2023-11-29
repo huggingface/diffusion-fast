@@ -19,6 +19,9 @@ def load_pipeline(run_compile=False, compile_mode="reduce-overhead"):
     if run_compile:
         pipe.unet.to(memory_format=torch.channels_last)
         print("Run torch compile")
+        if compile_mode == "max-autotune":
+            torch._inductor.config.conv_1x1_as_mm = True 
+            torch._inductor.config.coordinate_descent_tuning = True 
         pipe.unet = torch.compile(pipe.unet, mode=compile_mode, fullgraph=True)
 
     pipe.set_progress_bar_config(disable=True)
