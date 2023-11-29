@@ -1,7 +1,6 @@
 import torch 
 torch.set_float32_matmul_precision("high")
 
-from torchao.quantization import quant_api # noqa: E402
 from diffusers import DiffusionPipeline # noqa: E402
 import argparse # noqa: E402
 
@@ -26,6 +25,8 @@ def load_pipeline(args):
             torch._inductor.config.coordinate_descent_tuning = True 
 
         if args.do_quant:
+            from torchao.quantization import quant_api
+            
             torch._inductor.config.force_fuse_int_mm_with_mul = True
             unet = quant_api.change_linear_weights_to_int8_dqtensors(pipe.unet)
         else:
