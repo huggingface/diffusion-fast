@@ -28,7 +28,7 @@ def run_inference(pipe, args):
 
     path = (
         CKPT_ID.replace("/", "_")
-        + f"-bs@{args.batch_size}-steps@{args.num_inference_steps}-compile@{args.run_compile}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
+        + f"-bs@{args.batch_size}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
     )
     prof.export_chrome_trace(path)
     return path
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument("--do_quant", action="store_true")
     args = parser.parse_args()
 
-    if not args.run_compile:
+    if not args.compile_unet:
         args.compile_mode = "NA"
 
     trace_path = main(args)
