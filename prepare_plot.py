@@ -17,7 +17,12 @@ def prepare_plot(df, args):
 
     for i in range(len(df)):
         color = cmap(i)
-        bar = plt.bar(i, df.iloc[i]['time (secs)'], color=color, label=f'{df.iloc[i]["run_compile"]}, {df.iloc[i]["compile_mode"]}')
+        bar = plt.bar(
+            i,
+            df.iloc[i]['time (secs)'],
+            color=color,
+            label=f'{df.iloc[i]["run_compile"]}, {df.iloc[i]["compile_mode"]}'
+        )
         plt.text(
             bar[0].get_x() + bar[0].get_width() / 2, bar[0].get_height(),
             f'{df.iloc[i]["time (secs)"]:.2f}', 
