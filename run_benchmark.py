@@ -1,12 +1,12 @@
 import torch 
 torch.set_float32_matmul_precision("high")
 
-from diffusers import DiffusionPipeline
-import argparse
+from diffusers import DiffusionPipeline # noqa: E402
+import argparse # noqa: E402
 
-import sys 
+import sys # noqa: E402
 sys.path.append(".")
-from utils import benchmark_fn, bytes_to_giga_bytes, generate_csv_dict, write_to_csv
+from utils import benchmark_fn, bytes_to_giga_bytes, generate_csv_dict, write_to_csv # noqa: E402
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"

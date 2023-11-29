@@ -6,24 +6,32 @@ from huggingface_hub import upload_file
 
 import sys 
 sys.path.append(".")
-from utils import collate_csv
+from utils import collate_csv # noqa: E402
 
 REPO_ID = "sayakpaul/sample-datasets"
 
 def prepare_plot(df, args):
-    cmap = plt.cm.get_cmap('viridis', len(df))  # Using 'viridis' colormap, change as needed
+    cmap = plt.cm.get_cmap('viridis', len(df)) 
 
     plt.figure(figsize=(10, 6))
 
     for i in range(len(df)):
         color = cmap(i)
-        plt.bar(i, df.iloc[i]['time (secs)'], color=color, label=f'{df.iloc[i]["run_compile"]}, {df.iloc[i]["compile_mode"]}')
-    
+        bar = plt.bar(i, df.iloc[i]['time (secs)'], color=color, label=f'{df.iloc[i]["run_compile"]}, {df.iloc[i]["compile_mode"]}')
+        plt.text(
+            bar[0].get_x() + bar[0].get_width() / 2, bar[0].get_height(),
+            f'{df.iloc[i]["time (secs)"]:.2f}', 
+            ha='center', va='bottom'
+        )
+        
     plt.ylabel('Time (secs)')
     plt.title('Benchmarking Results')
     plt.xticks(rotation=45)
-    plt.legend(title='Run Compile / Compile Mode', bbox_to_anchor=(1.05, 1), loc='upper left')  # Moving legend outside the plot
+    plt.legend(title='Run Compile / Compile Mode', bbox_to_anchor=(1.05, 1), loc='upper left')  
+    
     plt.tight_layout()
+    plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
+
     plt.savefig(args.plot_file_path)
 
     if args.push_to_hub:
