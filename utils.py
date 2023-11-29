@@ -1,7 +1,7 @@
 import torch
 import torch.utils.benchmark as benchmark
 import gc
-from typing import Union, Dict 
+from typing import Union, Dict, List
 import csv
 
 BENCHMARK_FIELDS = [
@@ -68,3 +68,16 @@ def write_to_csv(file_name: str, data_dict: Dict[str, Union[str, bool, float]]):
         writer = csv.DictWriter(csvfile, fieldnames=BENCHMARK_FIELDS)
         writer.writeheader()
         writer.writerow(data_dict)
+
+
+def collate_csv(input_files: List[str], output_file: str):
+    """Collates multiple identically structured CSVs into a single CSV file."""
+    with open(output_file, mode="w", newline="") as outfile:
+        writer = csv.DictWriter(outfile, fieldnames=BENCHMARK_FIELDS)
+        writer.writeheader()
+
+        for file in input_files:
+            with open(file, mode="r") as infile:
+                reader = csv.DictReader(infile)
+                for row in reader:
+                    writer.writerow(row)
