@@ -10,7 +10,7 @@ from diffusers import DiffusionPipeline  # noqa: E402
 
 
 sys.path.append(".")
-from .run_benchmark import load_pipeline
+from run_benchmark import load_pipeline
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"
