@@ -59,7 +59,8 @@ def run_inference(pipe, args):
 
 def main(args) -> dict:
     pipeline = load_pipeline(args)
-    run_inference(pipeline, args)
+    trace_path = run_inference(pipeline, args)
+    return trace_path
 
 
 if __name__ == "__main__":
