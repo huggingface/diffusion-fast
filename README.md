@@ -24,9 +24,13 @@ _(Change `spsayakpaul/sdxl-fast-compile:nightly` accordingly)_
 
 ```bash
 python run_benchmark.py && \
-    python run_benchmark.py --run_compile && \
-    python run_benchmark.py --run_compile --compile_mode=max-autotune && \
-    python run_benchmark.py --run_compile --compile_mode=max-autotune --change_comp_config && \
+    python run_benchmark.py --compile_unet && \
+    python run_benchmark.py --compile_unet --compile_mode=max-autotune && \
+    python run_benchmark.py --compile_unet --compile_mode=max-autotune --change_comp_config && \
+    python run_benchmark.py --upcast_vae --compile_unet --compile_mode=max-autotune --change_comp_config && \
+    python run_benchmark.py --compile_unet --compile_vae && \
+    python run_benchmark.py --compile_unet --compile_vae --compile_mode=max-autotune && \
+    python run_benchmark.py --compile_unet --compile_vae --compile_mode=max-autotune --change_comp_config && \
     python prepare_plot.py --push_to_hub
 ```
 
@@ -52,7 +56,7 @@ python run_benchmark.py --run_compile --compile_mode=max-autotune --do_quant
 
 ```bash
 python run_profile.py && \
-    python run_profile.py --run_compile && \
-    python run_profile.py --run_compile --compile_mode=max-autotune && \
-    python run_profile.py --run_compile --compile_mode=max-autotune --change_comp_config
+    python run_profile.py --compile_unet && \
+    python run_profile.py --compile_unet --compile_mode=max-autotune && \
+    python run_profile.py --compile_unet --compile_mode=max-autotune --change_comp_config
 ```
