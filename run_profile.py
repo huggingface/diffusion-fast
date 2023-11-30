@@ -46,7 +46,8 @@ def main(args) -> dict:
             + f"-bs@{args.batch_size}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
         )    
     runner = functools.partial(profiler_runner, trace_path)
-    runner(run_inference, pipeline, args)
+    with torch.autograd.profiler.record_function("sdxl-brrr"):
+        runner(run_inference, pipeline, args)
     return trace_path
 
 
