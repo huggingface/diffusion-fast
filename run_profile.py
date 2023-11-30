@@ -3,6 +3,7 @@ import torch
 
 torch.set_float32_matmul_precision("high")
 
+import functools # noqa: E402
 import argparse  # noqa: E402
 import sys  # noqa: E402
 
@@ -16,27 +17,31 @@ CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"
 
 
-def run_inference(pipe, args):
+def profiler_runner(path, fn, *args, **kwargs):
     with torch.profiler.profile(
-        activities=[torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.CUDA], record_shapes=True
-    ) as prof:
-        _ = pipe(
-            prompt=PROMPT,
-            num_inference_steps=args.num_inference_steps,
-            num_images_per_prompt=args.batch_size,
-        )
-
-    path = (
-        CKPT_ID.replace("/", "_")
-        + f"-bs@{args.batch_size}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
-    )
+            activities=[torch.profiler.ProfilerActivity.CPU,
+                        torch.profiler.ProfilerActivity.CUDA],
+            record_shapes=True) as prof:
+        result = fn(*args, **kwargs)
     prof.export_chrome_trace(path)
-    return path
+    return result
+
+def run_inference(pipe, args):
+    _ = pipe(
+        prompt=PROMPT,
+        num_inference_steps=args.num_inference_steps,
+        num_images_per_prompt=args.batch_size,
+    )
 
 
 def main(args) -> dict:
     pipeline = load_pipeline(args)
-    trace_path = run_inference(pipeline, args)
+    trace_path = (
+            CKPT_ID.replace("/", "_")
+            + f"-bs@{args.batch_size}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
+        )    
+    runner = functools.partial(profiler_runner, trace_path)
+    runner(run_inference, pipeline, args)
     return trace_path
 
 
