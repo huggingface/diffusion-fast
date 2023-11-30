@@ -36,6 +36,11 @@ def run_inference(pipe, args):
 
 def main(args) -> dict:
     pipeline = load_pipeline(args)
+    
+    # warmup.
+    run_inference(pipeline, args)
+    run_inference(pipeline, args)
+
     trace_path = (
             CKPT_ID.replace("/", "_")
             + f"-bs@{args.batch_size}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"

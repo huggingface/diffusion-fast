@@ -88,6 +88,11 @@ def run_inference(pipe, args):
 
 def main(args) -> dict:
     pipeline = load_pipeline(args)
+    
+    # Warmup.
+    run_inference(pipeline, args)
+    run_inference(pipeline, args)
+    run_inference(pipeline, args)
 
     time = benchmark_fn(run_inference, pipeline, args)  # in seconds.
     memory = bytes_to_giga_bytes(torch.cuda.max_memory_allocated())  # in GBs.
