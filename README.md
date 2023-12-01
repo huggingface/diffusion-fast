@@ -23,15 +23,15 @@ _(Change `spsayakpaul/sdxl-fast-compile:nightly` accordingly)_
 **For bulk-launching benchmark runs and pushing a nice plot**:
 
 ```bash
-python run_benchmark.py && \
-    python run_benchmark.py --compile_unet && \
-    python run_benchmark.py --compile_unet --compile_mode=max-autotune && \
-    python run_benchmark.py --compile_unet --compile_mode=max-autotune --change_comp_config && \
-    python run_benchmark.py --upcast_vae --compile_unet --compile_mode=max-autotune --change_comp_config && \
-    python run_benchmark.py --compile_unet --compile_vae && \
-    python run_benchmark.py --compile_unet --compile_vae --compile_mode=max-autotune && \
-    python run_benchmark.py --compile_unet --compile_vae --compile_mode=max-autotune --change_comp_config && \
-    python prepare_plot.py --push_to_hub
+python run_benchmark.py --compile_unet --compile_mode=max-autotune --compile_vae && \
+  python run_benchmark.py --compile_unet --compile_mode=max-autotune --compile_vae --enable_fused_projections && \
+  python run_benchmark.py --compile_unet --compile_mode=max-autotune --compile_vae --do_quant && \
+  python run_benchmark.py --compile_unet --compile_mode=max-autotune --compile_vae --enable_fused_projections --do_quant && \
+  python run_benchmark.py --compile_unet --compile_mode=max-autotune --compile_vae --upcast_vae && \
+  python run_benchmark.py --compile_unet --compile_mode=max-autotune --compile_vae --upcast_vae --enable_fused_projections && \
+  python run_benchmark.py --compile_unet --compile_mode=max-autotune --compile_vae --upcast_vae --do_quant && \
+  python run_benchmark.py --compile_unet --compile_mode=max-autotune --compile_vae --upcast_vae --enable_fused_projections --do_quant &&
+  python prepare_plot.py --push_to_hub
 ```
 
 Specifying `--push_to_hub` requires you to run `huggingface-cli login` before hand. 
