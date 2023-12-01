@@ -47,7 +47,7 @@ def prepare_plot(df, args):
     plt.tight_layout()
     plt.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)
 
-    plt.savefig(args.plot_file_path)
+    plt.savefig(args.plot_file_path, dpi=300, bbox_inches="tight")
 
     if args.push_to_hub:
         upload_file(
