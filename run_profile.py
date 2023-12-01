@@ -43,7 +43,7 @@ def main(args) -> dict:
 
     trace_path = (
         CKPT_ID.replace("/", "_")
-        + f"-bs@{args.batch_size}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
+        + f"-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
     )    
     runner = functools.partial(profiler_runner, trace_path)
     with torch.autograd.profiler.record_function("sdxl-brrr"):
@@ -55,6 +55,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--num_inference_steps", type=int, default=30)
+    parser.add_argument("--enable_fused_projections", action="store_true")
     parser.add_argument("--upcast_vae", action="store_true")
     parser.add_argument("--compile_unet", action="store_true")
     parser.add_argument("--compile_vae", action="store_true")
