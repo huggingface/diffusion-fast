@@ -9,6 +9,7 @@ import torch.utils.benchmark as benchmark
 BENCHMARK_FIELDS = [
     "pipeline_cls",
     "ckpt_id",
+    "fused_qkv_projections",
     "upcast_vae",
     "batch_size",
     "num_inference_steps",
@@ -52,6 +53,7 @@ def generate_csv_dict(
     data_dict = {
         "pipeline_cls": pipeline_cls,
         "ckpt_id": ckpt,
+        "fused_qkv_projections": args.enable_fused_projections,
         "upcast_vae": args.upcast_vae,
         "batch_size": args.batch_size,
         "num_inference_steps": args.num_inference_steps,
