@@ -42,7 +42,7 @@ def load_pipeline(args):
     
     if args.enable_fused_projections:
         pipe._enable_fused_qkv_projections()
-        pipe.vae._enable_fused_qkv_projections()
+        pipe.vae._enable_fused_qkv_projections(device=pipe.device, dtype=pipe.dtype)
 
     if args.upcast_vae:
         pipe.upcast_vae()
