@@ -10,9 +10,6 @@ import functools # noqa: E402
 import argparse  # noqa: E402
 import sys  # noqa: E402
 
-from diffusers import DiffusionPipeline  # noqa: E402
-
-
 sys.path.append(".")
 from run_benchmark import load_pipeline
 
