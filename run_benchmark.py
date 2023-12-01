@@ -6,7 +6,7 @@ torch.set_float32_matmul_precision("high")
 import argparse  # noqa: E402
 import sys  # noqa: E402
 
-from diffusers import DiffusionPipeline  # noqa: E402
+from diffusers import DiffusionPipeline, AutoencoderKL  # noqa: E402
 
 
 sys.path.append(".")
@@ -35,7 +35,8 @@ def apply_dynamic_quant_fn(m):
 
 
 def load_pipeline(args):
-    pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=torch.float16, use_safetensors=True)
+    vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
+    pipe = DiffusionPipeline.from_pretrained(CKPT_ID, vae=vae, torch_dtype=torch.float16, use_safetensors=True)
     if args.upcast_vae:
         pipe.upcast_vae()
     pipe = pipe.to("cuda")
