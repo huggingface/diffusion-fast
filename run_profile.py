@@ -3,6 +3,9 @@ import torch
 
 torch.set_float32_matmul_precision("high")
 
+from torch._inductor import config as inductorconfig # noqa: E402
+inductorconfig.triton.unique_kernel_names = True 
+
 import functools # noqa: E402
 import argparse  # noqa: E402
 import sys  # noqa: E402
@@ -42,9 +45,9 @@ def main(args) -> dict:
     run_inference(pipeline, args)
 
     trace_path = (
-            CKPT_ID.replace("/", "_")
-            + f"-bs@{args.batch_size}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
-        )    
+        CKPT_ID.replace("/", "_")
+        + f"-bs@{args.batch_size}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
+    )    
     runner = functools.partial(profiler_runner, trace_path)
     with torch.autograd.profiler.record_function("sdxl-brrr"):
         runner(run_inference, pipeline, args)
