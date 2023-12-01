@@ -35,14 +35,17 @@ def apply_dynamic_quant_fn(m):
 
 
 def load_pipeline(args):
-    vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
-    pipe = DiffusionPipeline.from_pretrained(CKPT_ID, vae=vae, torch_dtype=torch.float16, use_safetensors=True)
+    pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=torch.float16, use_safetensors=True)
+    
+    if not args.upcast_vae:
+        pipe.vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
     
     if args.enable_fused_projections:
         pipe._enable_fused_qkv_projections()
 
     if args.upcast_vae:
         pipe.upcast_vae()
+    
     pipe = pipe.to("cuda")
 
     if args.compile_unet:
