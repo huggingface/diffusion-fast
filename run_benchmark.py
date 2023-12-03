@@ -17,8 +17,8 @@ PROMPT = "ghibli style, a fantasy landscape with castles"
 
 
 def apply_dynamic_quant_fn(m):
-    from torchao.quantization.quant_api import replace_with_custom_fn_if_matches_filter
     from torchao.quantization.dynamic_quant import DynamicallyPerAxisQuantizedLinear
+    from torchao.quantization.quant_api import replace_with_custom_fn_if_matches_filter
     from torchao.quantization.weight_only import WeightOnlyInt8QuantLinear
 
     def from_float(mod):
@@ -133,6 +133,6 @@ if __name__ == "__main__":
 
     name = (
         CKPT_ID.replace("/", "_")
-        + f"fp16@{args.no_fp16}-sdpa@{args.no_sdpa}-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.csv"
+        + f"fp16@{not args.no_fp16}-sdpa@{not args.no_sdpa}-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.csv"
     )
     write_to_csv(name, data_dict)
