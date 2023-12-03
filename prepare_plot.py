@@ -62,6 +62,11 @@ def main(args):
     all_csvs = sorted(glob.glob(f"{args.base_path}/*.csv"))
     collate_csv(all_csvs, args.final_csv_filename)
 
+    if args.push_to_hub:
+        upload_file(
+            repo_id=REPO_ID, path_in_repo=args.final_csv_filename, path_or_fileobj=args.final_csv_filename, repo_type="dataset"
+        )
+
     df = pd.read_csv(args.final_csv_filename)
     prepare_plot(df, args)
 
