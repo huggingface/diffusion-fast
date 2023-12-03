@@ -78,9 +78,9 @@ def load_pipeline(args):
             torch._inductor.config.force_fuse_int_mm_with_mul = True
 
         if args.compile_mode == "max-autotune":
-            pipe.vae = torch.compile(pipe.vae, mode=args.compile_mode)
+            pipe.vae.decode = torch.compile(pipe.vae.decode, mode=args.compile_mode)
         else:
-            pipe.vae = torch.compile(pipe.vae, mode=args.compile_mode, fullgraph=True)
+            pipe.vae.decode = torch.compile(pipe.vae.decode, mode=args.compile_mode, fullgraph=True)
 
     pipe.set_progress_bar_config(disable=True)
     return pipe
