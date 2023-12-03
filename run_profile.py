@@ -3,15 +3,19 @@ import torch
 
 torch.set_float32_matmul_precision("high")
 
-from torch._inductor import config as inductorconfig # noqa: E402
-inductorconfig.triton.unique_kernel_names = True 
+from torch._inductor import config as inductorconfig  # noqa: E402
 
-import functools # noqa: E402
+
+inductorconfig.triton.unique_kernel_names = True
+
+import functools  # noqa: E402
 import sys  # noqa: E402
 
+
 sys.path.append(".")
-from utils import create_parser
-from run_benchmark import load_pipeline
+from run_benchmark import load_pipeline  # noqa: E402
+from utils import create_parser  # noqa: E402
+
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"
@@ -19,12 +23,12 @@ PROMPT = "ghibli style, a fantasy landscape with castles"
 
 def profiler_runner(path, fn, *args, **kwargs):
     with torch.profiler.profile(
-            activities=[torch.profiler.ProfilerActivity.CPU,
-                        torch.profiler.ProfilerActivity.CUDA],
-            record_shapes=True) as prof:
+        activities=[torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.CUDA], record_shapes=True
+    ) as prof:
         result = fn(*args, **kwargs)
     prof.export_chrome_trace(path)
     return result
+
 
 def run_inference(pipe, args):
     _ = pipe(
@@ -36,7 +40,7 @@ def run_inference(pipe, args):
 
 def main(args) -> dict:
     pipeline = load_pipeline(args)
-    
+
     # warmup.
     run_inference(pipeline, args)
     run_inference(pipeline, args)
@@ -44,7 +48,7 @@ def main(args) -> dict:
     trace_path = (
         CKPT_ID.replace("/", "_")
         + f"fp16@{args.no_fp16}-sdpa@{args.no_sdpa}-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
-    )    
+    )
     runner = functools.partial(profiler_runner, trace_path)
     with torch.autograd.profiler.record_function("sdxl-brrr"):
         runner(run_inference, pipeline, args)

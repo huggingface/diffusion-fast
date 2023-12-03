@@ -41,7 +41,8 @@ def prepare_plot(df, args):
     plt.xticks(rotation=45)
     plt.legend(
         title="fused_proj / upcast_vae / compiled_unet / compiled_vae / mode / comp_setting. / quant",
-        bbox_to_anchor=(1.05, 1), loc="upper left"
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left",
     )
 
     plt.tight_layout()
@@ -64,7 +65,10 @@ def main(args):
 
     if args.push_to_hub:
         upload_file(
-            repo_id=REPO_ID, path_in_repo=args.final_csv_filename, path_or_fileobj=args.final_csv_filename, repo_type="dataset"
+            repo_id=REPO_ID,
+            path_in_repo=args.final_csv_filename,
+            path_or_fileobj=args.final_csv_filename,
+            repo_type="dataset",
         )
 
     df = pd.read_csv(args.final_csv_filename)

@@ -1,10 +1,10 @@
+import argparse
 import csv
 import gc
 from typing import Dict, List, Union
 
 import torch
 import torch.utils.benchmark as benchmark
-import argparse
 
 
 BENCHMARK_FIELDS = [
@@ -26,6 +26,7 @@ BENCHMARK_FIELDS = [
     "actual_gpu_memory (gbs)",
 ]
 TOTAL_GPU_MEMORY = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+
 
 def create_parser():
     """Creates CLI args parser."""

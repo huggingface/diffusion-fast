@@ -5,11 +5,11 @@ torch.set_float32_matmul_precision("high")
 
 import sys  # noqa: E402
 
-from diffusers import DiffusionPipeline, AutoencoderKL  # noqa: E402
+from diffusers import AutoencoderKL, DiffusionPipeline  # noqa: E402
 
 
 sys.path.append(".")
-from utils import create_parser, benchmark_fn, bytes_to_giga_bytes, generate_csv_dict, write_to_csv  # noqa: E402
+from utils import benchmark_fn, bytes_to_giga_bytes, create_parser, generate_csv_dict, write_to_csv  # noqa: E402
 
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
@@ -27,7 +27,7 @@ def apply_dynamic_quant_fn(m):
         if m.weight.size(1) == 2048 and m.weight.size(0) == 2560:
             return m
         if m.weight.size(1) == 2048 and m.weight.size(0) == 1280:
-            return m 
+            return m
         else:
             apply_dynamic_quant(m)
             return m
@@ -36,10 +36,10 @@ def apply_dynamic_quant_fn(m):
 def load_pipeline(args):
     dtype = torch.float32 if args.no_fp16 else torch.float16
     pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True)
-    
+
     if not args.upcast_vae:
         pipe.vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=dtype)
-    
+
     if args.enable_fused_projections:
         pipe.enable_fused_qkv_projections()
 
@@ -49,7 +49,7 @@ def load_pipeline(args):
     if args.no_sdpa:
         pipe.unet.set_default_attn_processor()
         pipe.vae.set_default_attn_processor()
-    
+
     pipe = pipe.to("cuda")
 
     if args.compile_unet:
@@ -100,7 +100,7 @@ def run_inference(pipe, args):
 
 def main(args) -> dict:
     pipeline = load_pipeline(args)
-    
+
     # Warmup.
     run_inference(pipeline, args)
     run_inference(pipeline, args)
