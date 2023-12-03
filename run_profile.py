@@ -13,12 +13,8 @@ import sys  # noqa: E402
 
 
 sys.path.append(".")
-from run_benchmark import load_pipeline  # noqa: E402
-from utils import create_parser  # noqa: E402
-
-
-CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
-PROMPT = "ghibli style, a fantasy landscape with castles"
+from utils.benchmarking_utils import create_parser  # noqa: E402
+from utils.pipeline_utils import CKPT_ID, PROMPT, load_pipeline  # noqa: E402
 
 
 def profiler_runner(path, fn, *args, **kwargs):

@@ -8,7 +8,7 @@ from huggingface_hub import upload_file
 
 
 sys.path.append(".")
-from utils import collate_csv  # noqa: E402
+from utils.benchmarking_utils import collate_csv  # noqa: E402
 
 
 REPO_ID = "sayakpaul/sample-datasets"
