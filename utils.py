@@ -75,8 +75,8 @@ def generate_csv_dict(
     data_dict = {
         "pipeline_cls": pipeline_cls,
         "ckpt_id": ckpt,
-        "fp16": args.use_fp16,
-        "sdpa": args.use_sdpa,
+        "fp16": args.no_fp16,
+        "sdpa": args.no_sdpa,
         "fused_qkv_projections": args.enable_fused_projections,
         "upcast_vae": args.upcast_vae,
         "batch_size": args.batch_size,
