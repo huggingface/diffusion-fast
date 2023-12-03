@@ -17,7 +17,7 @@ PROMPT = "ghibli style, a fantasy landscape with castles"
 
 
 def apply_dynamic_quant_fn(m):
-    from torchao.quantization.quant_api import _replace_with_custom_fn_if_matches_filter
+    from torchao.quantization.quant_api import replace_with_custom_fn_if_matches_filter
     from torchao.quantization.dynamic_quant import DynamicallyPerAxisQuantizedLinear
     from torchao.quantization.weight_only import WeightOnlyInt8QuantLinear
 
@@ -29,7 +29,7 @@ def apply_dynamic_quant_fn(m):
             return DynamicallyPerAxisQuantizedLinear.from_float(mod)
         return mod
 
-    _replace_with_custom_fn_if_matches_filter(
+    replace_with_custom_fn_if_matches_filter(
         m,
         from_float,
         lambda mod, fqn: isinstance(mod, torch.nn.Linear),
