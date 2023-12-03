@@ -35,16 +35,21 @@ def apply_dynamic_quant_fn(m):
 
 
 def load_pipeline(args):
-    pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=torch.float16, use_safetensors=True)
+    dtype = torch.float16 if args.use_fp16 else torch.float32
+    pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True)
     
     if not args.upcast_vae:
-        pipe.vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
+        pipe.vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=dtype)
     
     if args.enable_fused_projections:
         pipe.enable_fused_qkv_projections()
 
     if args.upcast_vae:
         pipe.upcast_vae()
+
+    if not args.use_sdpa:
+        pipe.unet.set_default_attn_processor()
+        pipe.vae.set_default_attn_processor()
     
     pipe = pipe.to("cuda")
 
@@ -117,6 +122,8 @@ def main(args) -> dict:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--use_fp16", action="store_false")
+    parser.add_argument("--use_sdpa", action="store_false")
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--num_inference_steps", type=int, default=30)
     parser.add_argument("--enable_fused_projections", action="store_true")

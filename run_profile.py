@@ -43,7 +43,7 @@ def main(args) -> dict:
 
     trace_path = (
         CKPT_ID.replace("/", "_")
-        + f"-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
+        + f"fp16@{args.use_fp16}-sdpa@{args.use_sdpa}-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
     )    
     runner = functools.partial(profiler_runner, trace_path)
     with torch.autograd.profiler.record_function("sdxl-brrr"):
@@ -53,6 +53,8 @@ def main(args) -> dict:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--use_fp16", action="store_false")
+    parser.add_argument("--use_sdpa", action="store_false")
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--num_inference_steps", type=int, default=30)
     parser.add_argument("--enable_fused_projections", action="store_true")
