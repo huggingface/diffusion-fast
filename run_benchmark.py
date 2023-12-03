@@ -3,7 +3,6 @@ import torch
 
 torch.set_float32_matmul_precision("high")
 
-import argparse  # noqa: E402
 import sys  # noqa: E402
 
 from diffusers import DiffusionPipeline, AutoencoderKL  # noqa: E402
