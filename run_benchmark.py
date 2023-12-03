@@ -22,7 +22,8 @@ def apply_dynamic_quant_fn(m):
     from torchao.quantization.weight_only import WeightOnlyInt8QuantLinear
 
     def from_float(mod):
-        assert mod.lora_layer is None
+        if hasattr(mod, "lora_layer"):
+            assert mod.lora_layer is None
         if mod.weight.size(1) == 1280 and mod.weight.size(0) == 1280:
             return WeightOnlyInt8QuantLinear.from_float(mod)
         if mod.weight.size(1) == 5120 and mod.weight.size(0) == 1280:
