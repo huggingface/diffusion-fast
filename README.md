@@ -46,6 +46,8 @@ cd ao
 python setup.py install
 ```
 
+We might have to check out from [this commit](https://github.com/pytorch-labs/ao/commit/f17ccff3e9499edb1f0e30e0580838dc2bcc5097) (`f17ccff`) for applying a mix of dynamic and weight-only quantization.
+
 Then run:
 
 ```bash

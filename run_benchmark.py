@@ -17,20 +17,23 @@ PROMPT = "ghibli style, a fantasy landscape with castles"
 
 
 def apply_dynamic_quant_fn(m):
-    from torchao.quantization import apply_dynamic_quant
+    from torchao.quantization.quant_api import _replace_with_custom_fn_if_matches_filter
+    from torchao.quantization.dynamic_quant import DynamicallyPerAxisQuantizedLinear
+    from torchao.quantization.weight_only import WeightOnlyInt8QuantLinear
 
-    if isinstance(m, (torch.nn.Conv2d, torch.nn.Linear)):
-        if m.weight.size(1) <= 1280 and m.weight.size(0) <= 1280:
-            return m
-        if m.weight.size(1) == 640 and m.weight.size(0) == 5120:
-            return m
-        if m.weight.size(1) == 2048 and m.weight.size(0) == 2560:
-            return m
-        if m.weight.size(1) == 2048 and m.weight.size(0) == 1280:
-            return m
-        else:
-            apply_dynamic_quant(m)
-            return m
+    def from_float(mod):
+        assert mod.lora_layer is None
+        if mod.weight.size(1) == 1280 and mod.weight.size(0) == 1280:
+            return WeightOnlyInt8QuantLinear.from_float(mod)
+        if mod.weight.size(1) == 5120 and mod.weight.size(0) == 1280:
+            return DynamicallyPerAxisQuantizedLinear.from_float(mod)
+        return mod
+
+    _replace_with_custom_fn_if_matches_filter(
+        m,
+        from_float,
+        lambda mod, fqn: isinstance(mod, torch.nn.Linear),
+    )
 
 
 def load_pipeline(args):
