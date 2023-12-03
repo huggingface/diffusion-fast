@@ -10,7 +10,7 @@ from diffusers import DiffusionPipeline, AutoencoderKL  # noqa: E402
 
 
 sys.path.append(".")
-from utils import benchmark_fn, bytes_to_giga_bytes, generate_csv_dict, write_to_csv  # noqa: E402
+from utils import create_parser, benchmark_fn, bytes_to_giga_bytes, generate_csv_dict, write_to_csv  # noqa: E402
 
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
@@ -35,7 +35,7 @@ def apply_dynamic_quant_fn(m):
 
 
 def load_pipeline(args):
-    dtype = torch.float16 if args.use_fp16 else torch.float32
+    dtype = torch.float32 if args.no_fp16 else torch.float16
     pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True)
     
     if not args.upcast_vae:
@@ -47,7 +47,7 @@ def load_pipeline(args):
     if args.upcast_vae:
         pipe.upcast_vae()
 
-    if not args.use_sdpa:
+    if args.no_sdpa:
         pipe.unet.set_default_attn_processor()
         pipe.vae.set_default_attn_processor()
     
@@ -121,20 +121,7 @@ def main(args) -> dict:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--use_fp16", action="store_false")
-    parser.add_argument("--use_sdpa", action="store_false")
-    parser.add_argument("--batch_size", type=int, default=1)
-    parser.add_argument("--num_inference_steps", type=int, default=30)
-    parser.add_argument("--enable_fused_projections", action="store_true")
-    parser.add_argument("--upcast_vae", action="store_true")
-    parser.add_argument("--compile_unet", action="store_true")
-    parser.add_argument("--compile_vae", action="store_true")
-    parser.add_argument(
-        "--compile_mode", type=str, default="reduce-overhead", choices=["reduce-overhead", "max-autotune"]
-    )
-    parser.add_argument("--change_comp_config", action="store_true")
-    parser.add_argument("--do_quant", action="store_true")
+    parser = create_parser()
     args = parser.parse_args()
 
     if not args.compile_unet:
@@ -144,6 +131,6 @@ if __name__ == "__main__":
 
     name = (
         CKPT_ID.replace("/", "_")
-        + f"fp16@{args.use_fp16}-sdpa@{args.use_sdpa}-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.csv"
+        + f"fp16@{args.no_fp16}-sdpa@{args.no_sdpa}-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.csv"
     )
     write_to_csv(name, data_dict)

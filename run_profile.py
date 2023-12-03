@@ -7,10 +7,10 @@ from torch._inductor import config as inductorconfig # noqa: E402
 inductorconfig.triton.unique_kernel_names = True 
 
 import functools # noqa: E402
-import argparse  # noqa: E402
 import sys  # noqa: E402
 
 sys.path.append(".")
+from utils import create_parser
 from run_benchmark import load_pipeline
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
@@ -43,7 +43,7 @@ def main(args) -> dict:
 
     trace_path = (
         CKPT_ID.replace("/", "_")
-        + f"fp16@{args.use_fp16}-sdpa@{args.use_sdpa}-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
+        + f"fp16@{args.no_fp16}-sdpa@{args.no_sdpa}-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
     )    
     runner = functools.partial(profiler_runner, trace_path)
     with torch.autograd.profiler.record_function("sdxl-brrr"):
@@ -52,20 +52,7 @@ def main(args) -> dict:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--use_fp16", action="store_false")
-    parser.add_argument("--use_sdpa", action="store_false")
-    parser.add_argument("--batch_size", type=int, default=1)
-    parser.add_argument("--num_inference_steps", type=int, default=30)
-    parser.add_argument("--enable_fused_projections", action="store_true")
-    parser.add_argument("--upcast_vae", action="store_true")
-    parser.add_argument("--compile_unet", action="store_true")
-    parser.add_argument("--compile_vae", action="store_true")
-    parser.add_argument(
-        "--compile_mode", type=str, default="reduce-overhead", choices=["reduce-overhead", "max-autotune"]
-    )
-    parser.add_argument("--change_comp_config", action="store_true")
-    parser.add_argument("--do_quant", action="store_true")
+    parser = create_parser()
     args = parser.parse_args()
 
     if not args.compile_unet:

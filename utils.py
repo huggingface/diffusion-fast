@@ -4,6 +4,7 @@ from typing import Dict, List, Union
 
 import torch
 import torch.utils.benchmark as benchmark
+import argparse
 
 
 BENCHMARK_FIELDS = [
@@ -25,6 +26,24 @@ BENCHMARK_FIELDS = [
     "actual_gpu_memory (gbs)",
 ]
 TOTAL_GPU_MEMORY = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+
+def create_parser():
+    """Creates CLI args parser."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--no_fp16", action="store_true")
+    parser.add_argument("--no_sdpa", action="store_true")
+    parser.add_argument("--batch_size", type=int, default=1)
+    parser.add_argument("--num_inference_steps", type=int, default=30)
+    parser.add_argument("--enable_fused_projections", action="store_true")
+    parser.add_argument("--upcast_vae", action="store_true")
+    parser.add_argument("--compile_unet", action="store_true")
+    parser.add_argument("--compile_vae", action="store_true")
+    parser.add_argument(
+        "--compile_mode", type=str, default="reduce-overhead", choices=["reduce-overhead", "max-autotune"]
+    )
+    parser.add_argument("--change_comp_config", action="store_true")
+    parser.add_argument("--do_quant", action="store_true")
+    return parser
 
 
 def flush():
