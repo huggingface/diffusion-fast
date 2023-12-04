@@ -42,7 +42,7 @@ To run benchmarking with `--do_quant` install `torchao` first:
 
 ```bash
 git clone https://github.com/pytorch-labs/ao
-cd ao
+cd ao && git checkout 235c50d
 python setup.py install
 ```
 
