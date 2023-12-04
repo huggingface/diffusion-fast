@@ -16,10 +16,10 @@ def apply_dynamic_quant_fn(m):
     def from_float(mod):
         if hasattr(mod, "lora_layer"):
             assert mod.lora_layer is None
-        if mod.weight.size(1) == 1280 and mod.weight.size(0) == 1280:
-            return WeightOnlyInt8QuantLinear.from_float(mod)
-        if mod.weight.size(1) == 640 and mod.weight.size(0) == 640:
-            return WeightOnlyInt8QuantLinear.from_float(mod)
+        # if mod.weight.size(1) == 1280 and mod.weight.size(0) == 1280:
+        #     return WeightOnlyInt8QuantLinear.from_float(mod)
+        # if mod.weight.size(1) == 640 and mod.weight.size(0) == 640:
+        #     return WeightOnlyInt8QuantLinear.from_float(mod)
         if mod.weight.size(1) == 5120 and mod.weight.size(0) == 1280:
             return DynamicallyPerAxisQuantizedLinear.from_float(mod)
         if mod.weight.size(1) == 2560 and mod.weight.size(0) == 640:
@@ -84,7 +84,7 @@ def load_pipeline(args):
 
         if args.do_quant:
             print("Apply quantization to VAE")
-            pipe._enable_bfloat16_for_vae()
+            # pipe._enable_bfloat16_for_vae()
             apply_dynamic_quant_fn(pipe.vae)
             torch._inductor.config.force_fuse_int_mm_with_mul = True
 
