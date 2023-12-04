@@ -16,10 +16,10 @@ def apply_dynamic_quant_fn(m):
     def from_float(mod):
         if hasattr(mod, "lora_layer"):
             assert mod.lora_layer is None
-        if mod.weight.size(1) == 1280 and mod.weight.size(0) == 1280:
-            return WeightOnlyInt8QuantLinear.from_float(mod)
-        if mod.weight.size(1) == 640 and mod.weight.size(0) == 640:
-            return WeightOnlyInt8QuantLinear.from_float(mod)
+        # if mod.weight.size(1) == 1280 and mod.weight.size(0) == 1280:
+        #     return WeightOnlyInt8QuantLinear.from_float(mod)
+        # if mod.weight.size(1) == 640 and mod.weight.size(0) == 640:
+        #     return WeightOnlyInt8QuantLinear.from_float(mod)
         if mod.weight.size(1) == 5120 and mod.weight.size(0) == 1280:
             return DynamicallyPerAxisQuantizedLinear.from_float(mod)
         if mod.weight.size(1) == 2560 and mod.weight.size(0) == 640:
@@ -45,9 +45,6 @@ def load_pipeline(args):
     if args.enable_fused_projections:
         print("Enabling fused QKV projections for both UNet and VAE.")
         pipe.enable_fused_qkv_projections()
-
-    if args.do_quant:
-        pipe._change_to_group_norm_32()
 
     if args.upcast_vae:
         print("Upcasting VAE.")
