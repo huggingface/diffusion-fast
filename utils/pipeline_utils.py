@@ -84,6 +84,7 @@ def load_pipeline(args):
 
         if args.do_quant:
             print("Apply quantization to VAE")
+            pipe._enable_bfloat16_for_vae()
             apply_dynamic_quant_fn(pipe.vae)
             torch._inductor.config.force_fuse_int_mm_with_mul = True
 
