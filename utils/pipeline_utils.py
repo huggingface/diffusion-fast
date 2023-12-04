@@ -44,7 +44,7 @@ def load_pipeline(args):
 
     if args.enable_fused_projections:
         print("Enabling fused QKV projections for both UNet and VAE.")
-        pipe.enable_fused_qkv_projections()
+        pipe.fuse_qkv_projections()
 
     if args.upcast_vae:
         print("Upcasting VAE.")
