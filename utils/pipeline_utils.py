@@ -65,7 +65,7 @@ def load_pipeline(args):
             torch._inductor.config.coordinate_descent_tuning = True
 
         if args.do_quant:
-            print("Appyly quantization to UNet")
+            print("Apply quantization to UNet")
             apply_dynamic_quant_fn(pipe.unet)
             torch._inductor.config.force_fuse_int_mm_with_mul = True
 
@@ -83,7 +83,7 @@ def load_pipeline(args):
             torch._inductor.config.coordinate_descent_tuning = True
 
         if args.do_quant:
-            print("Appyly quantization to VAE")
+            print("Apply quantization to VAE")
             apply_dynamic_quant_fn(pipe.vae)
             torch._inductor.config.force_fuse_int_mm_with_mul = True
 
