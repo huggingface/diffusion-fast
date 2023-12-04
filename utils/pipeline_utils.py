@@ -8,35 +8,46 @@ PROMPT = "ghibli style, a fantasy landscape with castles"
 
 
 def apply_dynamic_quant_fn(m):
-    """Applies quantization in a selective manner."""
-    from torchao.quantization import apply_dynamic_quant
+    """Applies weight-only and dynamic quantization in a selective manner."""
+    from torchao.quantization.dynamic_quant import DynamicallyPerAxisQuantizedLinear
+    from torchao.quantization.quant_api import _replace_with_custom_fn_if_matches_filter
+    from torchao.quantization.weight_only import WeightOnlyInt8QuantLinear
 
-    if isinstance(m, (torch.nn.Conv2d, torch.nn.Linear)):
-        if m.weight.size(1) <= 1280 and m.weight.size(0) <= 1280:
-            return m
-        if m.weight.size(1) == 640 and m.weight.size(0) == 5120:
-            return m
-        if m.weight.size(1) == 2048 and m.weight.size(0) == 2560:
-            return m
-        if m.weight.size(1) == 2048 and m.weight.size(0) == 1280:
-            return m
-        else:
-            apply_dynamic_quant(m)
-            return m
+    def from_float(mod):
+        if hasattr(mod, "lora_layer"):
+            assert mod.lora_layer is None
+        if mod.weight.size(1) == 1280 and mod.weight.size(0) == 1280:
+            return WeightOnlyInt8QuantLinear.from_float(mod)
+        if mod.weight.size(1) == 640 and mod.weight.size(0) == 640:
+            return WeightOnlyInt8QuantLinear.from_float(mod)
+        if mod.weight.size(1) == 5120 and mod.weight.size(0) == 1280:
+            return DynamicallyPerAxisQuantizedLinear.from_float(mod)
+        if mod.weight.size(1) == 2560 and mod.weight.size(0) == 640:
+            return DynamicallyPerAxisQuantizedLinear.from_float(mod)
+        return mod
+
+    _replace_with_custom_fn_if_matches_filter(
+        m,
+        from_float,
+        lambda mod, fqn: isinstance(mod, torch.nn.Linear),
+    )
 
 
 def load_pipeline(args):
     """Loads the SDXL pipeline."""
     dtype = torch.float32 if args.no_fp16 else torch.float16
+    print(f"Using dtype: {dtype}")
     pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True)
 
     if not args.upcast_vae:
         pipe.vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=dtype)
 
     if args.enable_fused_projections:
+        print("Enabling fused QKV projections for both UNet and VAE.")
         pipe.enable_fused_qkv_projections()
 
     if args.upcast_vae:
+        print("Upcasting VAE.")
         pipe.upcast_vae()
 
     if args.no_sdpa:
@@ -54,7 +65,8 @@ def load_pipeline(args):
             torch._inductor.config.coordinate_descent_tuning = True
 
         if args.do_quant:
-            pipe.unet.apply(apply_dynamic_quant_fn)
+            print("Appyly quantization to UNet")
+            apply_dynamic_quant_fn(pipe.unet)
             torch._inductor.config.force_fuse_int_mm_with_mul = True
 
         if args.compile_mode == "max-autotune":
@@ -71,7 +83,8 @@ def load_pipeline(args):
             torch._inductor.config.coordinate_descent_tuning = True
 
         if args.do_quant:
-            pipe.vae.apply(apply_dynamic_quant_fn)
+            print("Appyly quantization to VAE")
+            apply_dynamic_quant_fn(pipe.vae)
             torch._inductor.config.force_fuse_int_mm_with_mul = True
 
         if args.compile_mode == "max-autotune":
