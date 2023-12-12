@@ -43,20 +43,26 @@ def main(args) -> dict:
         time=time,
         memory=memory,
     )
-    return data_dict
+    img = pipeline(
+        prompt=PROMPT,
+        num_inference_steps=args.num_inference_steps,
+        num_images_per_prompt=args.batch_size,
+    ).images[0]
+
+
+    return data_dict, img
 
 
 if __name__ == "__main__":
     parser = create_parser()
     args = parser.parse_args()
+    print(args)
 
-    if not args.compile_unet:
-        args.compile_mode = "NA"
-
-    data_dict = main(args)
+    data_dict, img = main(args)
 
     name = (
         CKPT_ID.replace("/", "_")
-        + f"fp16@{not args.no_fp16}-sdpa@{not args.no_sdpa}-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.csv"
+        + f"bf16@{not args.no_bf16}-sdpa@{not args.no_sdpa}-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}-tag@{args.tag}.csv"
     )
+    img.save(f"{name}.jpeg")
     write_to_csv(name, data_dict)
