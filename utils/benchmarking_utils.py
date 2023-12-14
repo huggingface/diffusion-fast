@@ -10,7 +10,7 @@ import torch.utils.benchmark as benchmark
 BENCHMARK_FIELDS = [
     "pipeline_cls",
     "ckpt_id",
-    "fp16",
+    "bf16",
     "sdpa",
     "fused_qkv_projections",
     "upcast_vae",
@@ -24,6 +24,7 @@ BENCHMARK_FIELDS = [
     "time (secs)",
     "memory (gbs)",
     "actual_gpu_memory (gbs)",
+    "tag"
 ]
 TOTAL_GPU_MEMORY = torch.cuda.get_device_properties(0).total_memory / (1024**3)
 
@@ -31,7 +32,7 @@ TOTAL_GPU_MEMORY = torch.cuda.get_device_properties(0).total_memory / (1024**3)
 def create_parser():
     """Creates CLI args parser."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--no_fp16", action="store_true")
+    parser.add_argument("--no_bf16", action="store_true")
     parser.add_argument("--no_sdpa", action="store_true")
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--num_inference_steps", type=int, default=30)
@@ -43,7 +44,8 @@ def create_parser():
         "--compile_mode", type=str, default="reduce-overhead", choices=["reduce-overhead", "max-autotune"]
     )
     parser.add_argument("--change_comp_config", action="store_true")
-    parser.add_argument("--do_quant", action="store_true")
+    parser.add_argument("--do_quant", type=str, default=None)
+    parser.add_argument("--tag", type=str, default="")
     return parser
 
 
@@ -75,8 +77,8 @@ def generate_csv_dict(
     data_dict = {
         "pipeline_cls": pipeline_cls,
         "ckpt_id": ckpt,
-        "fp16": args.no_fp16,
-        "sdpa": args.no_sdpa,
+        "bf16": not args.no_bf16,
+        "sdpa": not args.no_sdpa,
         "fused_qkv_projections": args.enable_fused_projections,
         "upcast_vae": args.upcast_vae,
         "batch_size": args.batch_size,
@@ -89,6 +91,7 @@ def generate_csv_dict(
         "time (secs)": time,
         "memory (gbs)": memory,
         "actual_gpu_memory (gbs)": f"{(TOTAL_GPU_MEMORY):.3f}",
+        "tag": args.tag,
     }
     return data_dict
 

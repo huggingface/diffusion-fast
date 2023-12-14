@@ -1,41 +1,29 @@
 import torch
-
+from torchao.quantization import change_linear_weights_to_int8_woqtensors, change_linear_weights_to_int8_dqtensors, change_linear_weights_to_int4_woqtensors, swap_conv2d_1x1_to_linear
 from diffusers import AutoencoderKL, DiffusionPipeline
+
+def dynamic_quant_filter_fn(mod, *args):
+    return isinstance(mod, torch.nn.Linear) and mod.in_features > 16 and not (mod.in_features, mod.out_features) in [
+        (320, 640),
+        (320, 1280),
+        (2816, 1280),
+        (1280, 640),
+        (1280, 320),
+        (512, 512),
+        (512, 1536),
+        (2048, 2560),
+        (2048, 1280),
+    ]
 
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"
 
-
-def apply_dynamic_quant_fn(m):
-    """Applies weight-only and dynamic quantization in a selective manner."""
-    from torchao.quantization.dynamic_quant import DynamicallyPerAxisQuantizedLinear
-    from torchao.quantization.quant_api import _replace_with_custom_fn_if_matches_filter
-    from torchao.quantization.weight_only import WeightOnlyInt8QuantLinear
-
-    def from_float(mod):
-        if hasattr(mod, "lora_layer"):
-            assert mod.lora_layer is None
-        # if mod.weight.size(1) == 1280 and mod.weight.size(0) == 1280:
-        #     return WeightOnlyInt8QuantLinear.from_float(mod)
-        # if mod.weight.size(1) == 640 and mod.weight.size(0) == 640:
-        #     return WeightOnlyInt8QuantLinear.from_float(mod)
-        if mod.weight.size(1) == 5120 and mod.weight.size(0) == 1280:
-            return DynamicallyPerAxisQuantizedLinear.from_float(mod)
-        # if mod.weight.size(1) == 2560 and mod.weight.size(0) == 640:
-        #     return DynamicallyPerAxisQuantizedLinear.from_float(mod)
-        return mod
-
-    _replace_with_custom_fn_if_matches_filter(
-        m,
-        from_float,
-        lambda mod, fqn: isinstance(mod, torch.nn.Linear),
-    )
-
+# torch._inductor.config.fx_graph_cache = True # speeds up recompile, may reduce performance
 
 def load_pipeline(args):
     """Loads the SDXL pipeline."""
-    dtype = torch.float32 if args.no_fp16 else torch.float16
+    dtype = torch.float32 if args.no_bf16 else torch.bfloat16
     print(f"Using dtype: {dtype}")
     pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True)
 
@@ -59,36 +47,56 @@ def load_pipeline(args):
     if args.compile_unet:
         pipe.unet.to(memory_format=torch.channels_last)
         print("Compile UNet")
-
+        swap_conv2d_1x1_to_linear(pipe.unet)
         if args.compile_mode == "max-autotune" and args.change_comp_config:
             torch._inductor.config.conv_1x1_as_mm = True
             torch._inductor.config.coordinate_descent_tuning = True
+            torch._inductor.config.epilogue_fusion = False
+            torch._inductor.config.coordinate_descent_check_all_directions = True
 
         if args.do_quant:
             print("Apply quantization to UNet")
-            apply_dynamic_quant_fn(pipe.unet)
+            if args.do_quant == "int4weightonly":
+                change_linear_weights_to_int4_woqtensors(pipe.unet)
+            elif args.do_quant == "int8weightonly":
+                change_linear_weights_to_int8_woqtensors(pipe.unet)
+            elif args.do_quant == "int8dynamic":
+                change_linear_weights_to_int8_dqtensors(pipe.unet, dynamic_quant_filter_fn)
+            else:
+                raise ValueError(f"Unknown do_quant value: {args.do_quant}.")
             torch._inductor.config.force_fuse_int_mm_with_mul = True
+            torch._inductor.config.use_mixed_mm = True
 
         if args.compile_mode == "max-autotune":
-            pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode)
+            pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode, fullgraph=True)
         else:
             pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode, fullgraph=True)
 
     if args.compile_vae:
         pipe.vae.to(memory_format=torch.channels_last)
         print("Compile VAE")
-
+        swap_conv2d_1x1_to_linear(pipe.vae)
         if args.compile_mode == "max-autotune" and args.change_comp_config:
             torch._inductor.config.conv_1x1_as_mm = True
             torch._inductor.config.coordinate_descent_tuning = True
+            torch._inductor.config.epilogue_fusion = False
+            torch._inductor.config.coordinate_descent_check_all_directions = True
 
         if args.do_quant:
             print("Apply quantization to VAE")
-            apply_dynamic_quant_fn(pipe.vae)
+            if args.do_quant == "int4weightonly":
+                change_linear_weights_to_int4_woqtensors(pipe.vae)
+            elif args.do_quant == "int8weightonly":
+                change_linear_weights_to_int8_woqtensors(pipe.vae)
+            elif args.do_quant == "int8dynamic":
+                change_linear_weights_to_int8_dqtensors(pipe.vae, dynamic_quant_filter_fn)
+            else:
+                raise ValueError(f"Unknown do_quant value: {args.do_quant}.")
             torch._inductor.config.force_fuse_int_mm_with_mul = True
+            torch._inductor.config.use_mixed_mm = True
 
         if args.compile_mode == "max-autotune":
-            pipe.vae.decode = torch.compile(pipe.vae.decode, mode=args.compile_mode)
+            pipe.vae.decode = torch.compile(pipe.vae.decode, mode=args.compile_mode, fullgraph=True)
         else:
             pipe.vae.decode = torch.compile(pipe.vae.decode, mode=args.compile_mode, fullgraph=True)
 
