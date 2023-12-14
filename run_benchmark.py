@@ -49,7 +49,6 @@ def main(args) -> dict:
         num_images_per_prompt=args.batch_size,
     ).images[0]
 
-
     return data_dict, img
 
 

@@ -24,7 +24,7 @@ BENCHMARK_FIELDS = [
     "time (secs)",
     "memory (gbs)",
     "actual_gpu_memory (gbs)",
-    "tag"
+    "tag",
 ]
 TOTAL_GPU_MEMORY = torch.cuda.get_device_properties(0).total_memory / (1024**3)
 
