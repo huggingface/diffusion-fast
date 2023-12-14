@@ -31,8 +31,6 @@ def dynamic_quant_filter_fn(mod, *args):
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"
 
-# torch._inductor.config.fx_graph_cache = True # speeds up recompile, may reduce performance
-
 
 def load_pipeline(args):
     """Loads the SDXL pipeline."""
