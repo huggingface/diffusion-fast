@@ -44,14 +44,14 @@ def load_pipeline(args):
     print(f"Using dtype: {dtype}")
     pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True)
 
-    if not args.upcast_vae and "runway" not in CKPT_ID:
+    if not args.upcast_vae and CKPT_ID != "runwayml/stable-diffusion-v1-5":
         pipe.vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=dtype)
 
     if args.enable_fused_projections:
         print("Enabling fused QKV projections for both UNet and VAE.")
         pipe.fuse_qkv_projections()
 
-    if args.upcast_vae and "runway" not in CKPT_ID:
+    if args.upcast_vae and CKPT_ID != "runwayml/stable-diffusion-v1-5":
         print("Upcasting VAE.")
         pipe.upcast_vae()
 
