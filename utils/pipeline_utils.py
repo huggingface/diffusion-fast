@@ -1,12 +1,16 @@
 import torch
 from torchao.quantization import (
-    change_linear_weights_to_int4_woqtensors,
     apply_dynamic_quant,
+    change_linear_weights_to_int4_woqtensors,
     change_linear_weights_to_int8_woqtensors,
     swap_conv2d_1x1_to_linear,
 )
 
 from diffusers import AutoencoderKL, DiffusionPipeline
+
+
+CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
+PROMPT = "ghibli style, a fantasy landscape with castles"
 
 
 def dynamic_quant_filter_fn(mod, *args):
@@ -28,10 +32,6 @@ def dynamic_quant_filter_fn(mod, *args):
     )
 
 
-CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
-PROMPT = "ghibli style, a fantasy landscape with castles"
-
-
 def load_pipeline(args):
     """Loads the SDXL pipeline."""
 
@@ -44,14 +44,14 @@ def load_pipeline(args):
     print(f"Using dtype: {dtype}")
     pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True)
 
-    if not args.upcast_vae:
+    if not args.upcast_vae and "runway" not in CKPT_ID:
         pipe.vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=dtype)
 
     if args.enable_fused_projections:
         print("Enabling fused QKV projections for both UNet and VAE.")
         pipe.fuse_qkv_projections()
 
-    if args.upcast_vae:
+    if args.upcast_vae and "runway" not in CKPT_ID:
         print("Upcasting VAE.")
         pipe.upcast_vae()
 
