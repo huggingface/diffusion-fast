@@ -92,7 +92,7 @@ def generate_csv_dict(
         "batch_size": args.batch_size,
         "num_inference_steps": args.num_inference_steps,
         "compile_unet": args.compile_transformer if "PixArt" in pipeline_cls else args.compile_unet,
-        "compile_vae": args.compile_unet,
+        "compile_vae": args.vae,
         "compile_mode": args.compile_mode,
         "change_comp_config": args.change_comp_config,
         "do_quant": args.do_quant,
