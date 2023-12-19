@@ -6,7 +6,7 @@ from torchao.quantization import (
     swap_conv2d_1x1_to_linear,
 )
 
-from diffusers import AutoencoderKL, DiffusionPipeline
+from diffusers import AutoencoderKL, DiffusionPipeline, DPMSolverMultistepScheduler
 
 
 CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
@@ -42,7 +42,14 @@ def load_pipeline(args):
 
     dtype = torch.float32 if args.no_bf16 else torch.bfloat16
     print(f"Using dtype: {dtype}")
-    pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True)
+    
+    if CKPT_ID != "runwayml/stable-diffusion-v1-5":
+        pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True)
+    else:
+        pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True, safety_checker=None)
+        # As the default scheduler of SD v1-5 doesn't have sigmas device placement
+        # (https://github.com/huggingface/diffusers/pull/6173)
+        pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
 
     if not args.upcast_vae and CKPT_ID != "runwayml/stable-diffusion-v1-5":
         pipe.vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=dtype)
