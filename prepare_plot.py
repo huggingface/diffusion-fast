@@ -61,7 +61,7 @@ def prepare_plot(df, args):
 
 def main(args):
     all_csvs = sorted(glob.glob(f"{args.base_path}/*.csv"))
-    collate_csv(all_csvs, args.final_csv_filename)
+    collate_csv(all_csvs, args.final_csv_filename, is_pixart="Pix" in all_csvs[0])
 
     if args.push_to_hub:
         upload_file(

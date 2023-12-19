@@ -6,7 +6,7 @@ from torchao.quantization import (
     swap_conv2d_1x1_to_linear,
 )
 
-from diffusers import AutoencoderKL, DiffusionPipeline
+from diffusers import DiffusionPipeline
 
 
 def dynamic_quant_filter_fn(mod, *args):
@@ -28,43 +28,36 @@ def dynamic_quant_filter_fn(mod, *args):
     )
 
 
-CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
+CKPT_ID = "PixArt-alpha/PixArt-XL-2-1024-MS"
 PROMPT = "ghibli style, a fantasy landscape with castles"
 
 
 def load_pipeline(args):
     """Loads the SDXL pipeline."""
 
-    if args.do_quant and not args.compile_unet:
+    if args.do_quant and not args.compile_transformer:
         raise ValueError("Compilation for UNet must be enabled when quantizing.")
     if args.do_quant and not args.compile_vae:
         raise ValueError("Compilation for VAE must be enabled when quantizing.")
 
     dtype = torch.float32 if args.no_bf16 else torch.bfloat16
     print(f"Using dtype: {dtype}")
-    pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True)
-
-    if not args.upcast_vae:
-        pipe.vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=dtype)
+    pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype)
 
     if args.enable_fused_projections:
         print("Enabling fused QKV projections for both UNet and VAE.")
         pipe.fuse_qkv_projections()
 
-    if args.upcast_vae:
-        print("Upcasting VAE.")
-        pipe.upcast_vae()
-
     if args.no_sdpa:
-        pipe.unet.set_default_attn_processor()
+        pipe.transformer.set_default_attn_processor()
         pipe.vae.set_default_attn_processor()
 
     pipe = pipe.to("cuda")
 
-    if args.compile_unet:
-        pipe.unet.to(memory_format=torch.channels_last)
+    if args.compile_transformer:
+        pipe.transformer.to(memory_format=torch.channels_last)
         print("Compile UNet")
-        swap_conv2d_1x1_to_linear(pipe.unet)
+        swap_conv2d_1x1_to_linear(pipe.transformer)
         if args.compile_mode == "max-autotune" and args.change_comp_config:
             torch._inductor.config.conv_1x1_as_mm = True
             torch._inductor.config.coordinate_descent_tuning = True
@@ -74,17 +67,17 @@ def load_pipeline(args):
         if args.do_quant:
             print("Apply quantization to UNet")
             if args.do_quant == "int4weightonly":
-                change_linear_weights_to_int4_woqtensors(pipe.unet)
+                change_linear_weights_to_int4_woqtensors(pipe.transformer)
             elif args.do_quant == "int8weightonly":
-                change_linear_weights_to_int8_woqtensors(pipe.unet)
+                change_linear_weights_to_int8_woqtensors(pipe.transformer)
             elif args.do_quant == "int8dynamic":
-                apply_dynamic_quant(pipe.unet, dynamic_quant_filter_fn)
+                apply_dynamic_quant(pipe.transformer, dynamic_quant_filter_fn)
             else:
                 raise ValueError(f"Unknown do_quant value: {args.do_quant}.")
             torch._inductor.config.force_fuse_int_mm_with_mul = True
             torch._inductor.config.use_mixed_mm = True
 
-        pipe.unet = torch.compile(pipe.unet, mode=args.compile_mode, fullgraph=True)
+        pipe.transformer = torch.compile(pipe.transformer, mode=args.compile_mode, fullgraph=True)
 
     if args.compile_vae:
         pipe.vae.to(memory_format=torch.channels_last)
