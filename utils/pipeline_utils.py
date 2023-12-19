@@ -1,7 +1,7 @@
 import torch
 from torchao.quantization import (
     change_linear_weights_to_int4_woqtensors,
-    change_linear_weights_to_int8_dqtensors,
+    apply_dynamic_quant,
     change_linear_weights_to_int8_woqtensors,
     swap_conv2d_1x1_to_linear,
 )
@@ -78,7 +78,7 @@ def load_pipeline(args):
             elif args.do_quant == "int8weightonly":
                 change_linear_weights_to_int8_woqtensors(pipe.unet)
             elif args.do_quant == "int8dynamic":
-                change_linear_weights_to_int8_dqtensors(pipe.unet, dynamic_quant_filter_fn)
+                apply_dynamic_quant(pipe.unet, dynamic_quant_filter_fn)
             else:
                 raise ValueError(f"Unknown do_quant value: {args.do_quant}.")
             torch._inductor.config.force_fuse_int_mm_with_mul = True
@@ -104,7 +104,7 @@ def load_pipeline(args):
             elif args.do_quant == "int8weightonly":
                 change_linear_weights_to_int8_woqtensors(pipe.vae)
             elif args.do_quant == "int8dynamic":
-                change_linear_weights_to_int8_dqtensors(pipe.vae, dynamic_quant_filter_fn)
+                apply_dynamic_quant(pipe.vae, dynamic_quant_filter_fn)
             else:
                 raise ValueError(f"Unknown do_quant value: {args.do_quant}.")
             torch._inductor.config.force_fuse_int_mm_with_mul = True
