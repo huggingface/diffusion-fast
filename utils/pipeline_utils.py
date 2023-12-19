@@ -42,7 +42,7 @@ def load_pipeline(args):
 
     dtype = torch.float32 if args.no_bf16 else torch.bfloat16
     print(f"Using dtype: {dtype}")
-    
+
     if CKPT_ID != "runwayml/stable-diffusion-v1-5":
         pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True)
     else:
