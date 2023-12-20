@@ -33,10 +33,10 @@ PROMPT = "ghibli style, a fantasy landscape with castles"
 
 
 def load_pipeline(args):
-    """Loads the SDXL pipeline."""
+    """Loads the PixArt-Alpha pipeline."""
 
     if args.do_quant and not args.compile_transformer:
-        raise ValueError("Compilation for UNet must be enabled when quantizing.")
+        raise ValueError("Compilation for Transformer must be enabled when quantizing.")
     if args.do_quant and not args.compile_vae:
         raise ValueError("Compilation for VAE must be enabled when quantizing.")
 
@@ -45,7 +45,7 @@ def load_pipeline(args):
     pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype)
 
     if args.enable_fused_projections:
-        print("Enabling fused QKV projections for both UNet and VAE.")
+        print("Enabling fused QKV projections for both Transformer and VAE.")
         pipe.fuse_qkv_projections()
 
     if args.no_sdpa:
@@ -56,7 +56,7 @@ def load_pipeline(args):
 
     if args.compile_transformer:
         pipe.transformer.to(memory_format=torch.channels_last)
-        print("Compile UNet")
+        print("Compile Transformer")
         swap_conv2d_1x1_to_linear(pipe.transformer)
         if args.compile_mode == "max-autotune" and args.change_comp_config:
             torch._inductor.config.conv_1x1_as_mm = True
@@ -65,7 +65,7 @@ def load_pipeline(args):
             torch._inductor.config.coordinate_descent_check_all_directions = True
 
         if args.do_quant:
-            print("Apply quantization to UNet")
+            print("Apply quantization to Transformer")
             if args.do_quant == "int4weightonly":
                 change_linear_weights_to_int4_woqtensors(pipe.transformer)
             elif args.do_quant == "int8weightonly":
