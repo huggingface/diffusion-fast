@@ -64,7 +64,7 @@ def prepare_plot(df, args):
 
     plt.ylabel("Time in Seconds", fontsize=14, labelpad=15)
     plt.xlabel("Settings", fontsize=14, labelpad=15)
-    plt.title(args.title, fontsize=18, fontweight="bold", pad=20)
+    plt.title(args.plot_title, fontsize=18, fontweight="bold", pad=20)
 
     # Adding horizontal gridlines for better readability
     plt.grid(axis="y", linestyle="--", linewidth=0.7, alpha=0.7)
@@ -72,7 +72,7 @@ def prepare_plot(df, args):
     plt.tight_layout()
     plt.subplots_adjust(top=0.9, bottom=0.2)  # Adjust the top and bottom
 
-    plot_path = args.title.replace(" ", "_") + ".png"
+    plot_path = args.plot_title.replace(" ", "_") + ".png"
     plt.savefig(plot_path, bbox_inches="tight", dpi=300)
 
     if args.push_to_hub:
