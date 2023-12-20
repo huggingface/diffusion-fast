@@ -27,7 +27,8 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip && \
     transformers \
     peft \
     pandas \ 
-    matplotlib
+    matplotlib \
+    seaborn 
 
 RUN python3 -m pip install --no-cache-dir git+https://github.com/huggingface/diffusers@4836cfad9836e6742a1d09462f85313534388a48
 RUN python3 -m pip install --no-cache-dir git+https://github.com/pytorch-labs/ao@9aaf3ec704d659a860c5976771bca05637ca98ad
