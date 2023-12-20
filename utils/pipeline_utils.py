@@ -17,35 +17,35 @@ def dynamic_quant_filter_fn(mod, *args):
     return (
         isinstance(mod, torch.nn.Linear)
         and mod.in_features > 16
-        # and (mod.in_features, mod.out_features)
-        # not in [
-        #     (1280, 640),
-        #     (1920, 1280),
-        #     (1920, 640),
-        #     (2048, 1280),
-        #     (2048, 2560),
-        #     (2560, 1280),
-        #     (256, 128),
-        #     (2816, 1280),
-        #     (320, 640),
-        #     (512, 1536),
-        #     (512, 256),
-        #     (512, 512),
-        #     (640, 1280),
-        #     (640, 1920),
-        #     (640, 320),
-        #     (640, 5120),
-        #     (640, 640),
-        #     (960, 320),
-        #     (960, 640),
-        # ]
+        and (mod.in_features, mod.out_features)
+        not in [
+            (1280, 640),
+            (1920, 1280),
+            (1920, 640),
+            (2048, 1280),
+            (2048, 2560),
+            (2560, 1280),
+            (256, 128),
+            (2816, 1280),
+            (320, 640),
+            (512, 1536),
+            (512, 256),
+            (512, 512),
+            (640, 1280),
+            (640, 1920),
+            (640, 320),
+            (640, 5120),
+            (640, 640),
+            (960, 320),
+            (960, 640),
+        ]
     )
+
 
 def conv_filter_fn(mod, *args):
     return (
-        isinstance(mod, torch.nn.Conv2d) and mod.kernel_size==(1,1)
-        # and 128 in [mod.in_channels, mod.out_channels]
-    ) 
+        isinstance(mod, torch.nn.Conv2d) and mod.kernel_size == (1, 1) and 128 in [mod.in_channels, mod.out_channels]
+    )
 
 
 def load_pipeline(args):
