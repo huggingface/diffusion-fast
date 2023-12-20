@@ -17,19 +17,35 @@ def dynamic_quant_filter_fn(mod, *args):
     return (
         isinstance(mod, torch.nn.Linear)
         and mod.in_features > 16
-        and (mod.in_features, mod.out_features)
-        not in [
-            (320, 640),
-            (320, 1280),
-            (2816, 1280),
-            (1280, 640),
-            (1280, 320),
-            (512, 512),
-            (512, 1536),
-            (2048, 2560),
-            (2048, 1280),
-        ]
+        # and (mod.in_features, mod.out_features)
+        # not in [
+        #     (1280, 640),
+        #     (1920, 1280),
+        #     (1920, 640),
+        #     (2048, 1280),
+        #     (2048, 2560),
+        #     (2560, 1280),
+        #     (256, 128),
+        #     (2816, 1280),
+        #     (320, 640),
+        #     (512, 1536),
+        #     (512, 256),
+        #     (512, 512),
+        #     (640, 1280),
+        #     (640, 1920),
+        #     (640, 320),
+        #     (640, 5120),
+        #     (640, 640),
+        #     (960, 320),
+        #     (960, 640),
+        # ]
     )
+
+def conv_filter_fn(mod, *args):
+    return (
+        isinstance(mod, torch.nn.Conv2d) and mod.kernel_size==(1,1)
+        # and 128 in [mod.in_channels, mod.out_channels]
+    ) 
 
 
 def load_pipeline(args):
@@ -71,7 +87,7 @@ def load_pipeline(args):
     if args.compile_unet:
         pipe.unet.to(memory_format=torch.channels_last)
         print("Compile UNet")
-        swap_conv2d_1x1_to_linear(pipe.unet)
+        swap_conv2d_1x1_to_linear(pipe.unet, conv_filter_fn)
         if args.compile_mode == "max-autotune" and args.change_comp_config:
             torch._inductor.config.conv_1x1_as_mm = True
             torch._inductor.config.coordinate_descent_tuning = True
@@ -96,7 +112,7 @@ def load_pipeline(args):
     if args.compile_vae:
         pipe.vae.to(memory_format=torch.channels_last)
         print("Compile VAE")
-        swap_conv2d_1x1_to_linear(pipe.vae)
+        swap_conv2d_1x1_to_linear(pipe.vae, conv_filter_fn)
 
         if args.compile_mode == "max-autotune" and args.change_comp_config:
             torch._inductor.config.conv_1x1_as_mm = True
