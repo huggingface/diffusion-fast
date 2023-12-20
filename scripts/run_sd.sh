@@ -1,4 +1,7 @@
 #!/bin/bash
+
+cd ..
+
 python run_benchmark.py --no_sdpa --no_bf16 --compile_mode=max-autotune && \
 python run_benchmark.py --compile_unet --compile_mode=max-autotune --compile_vae --change_comp_config && \
 python run_benchmark.py --compile_unet --compile_mode=max-autotune --compile_vae --change_comp_config --enable_fused_projections && \
