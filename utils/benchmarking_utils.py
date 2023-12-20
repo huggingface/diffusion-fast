@@ -1,4 +1,5 @@
 import argparse
+import copy
 import csv
 import gc
 from typing import Dict, List, Union
@@ -29,7 +30,7 @@ BENCHMARK_FIELDS = [
 TOTAL_GPU_MEMORY = torch.cuda.get_device_properties(0).total_memory / (1024**3)
 
 
-def create_parser():
+def create_parser(is_pixart=False):
     """Creates CLI args parser."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--no_bf16", action="store_true")
@@ -37,8 +38,15 @@ def create_parser():
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--num_inference_steps", type=int, default=30)
     parser.add_argument("--enable_fused_projections", action="store_true")
-    parser.add_argument("--upcast_vae", action="store_true")
-    parser.add_argument("--compile_unet", action="store_true")
+
+    if not is_pixart:
+        parser.add_argument("--upcast_vae", action="store_true")
+
+    if is_pixart:
+        parser.add_argument("--compile_transformer", action="store_true")
+    else:
+        parser.add_argument("--compile_unet", action="store_true")
+
     parser.add_argument("--compile_vae", action="store_true")
     parser.add_argument(
         "--compile_mode", type=str, default="reduce-overhead", choices=["reduce-overhead", "max-autotune"]
@@ -80,10 +88,10 @@ def generate_csv_dict(
         "bf16": not args.no_bf16,
         "sdpa": not args.no_sdpa,
         "fused_qkv_projections": args.enable_fused_projections,
-        "upcast_vae": args.upcast_vae,
+        "upcast_vae": "NA" if "PixArt" in pipeline_cls else args.upcast_vae,
         "batch_size": args.batch_size,
         "num_inference_steps": args.num_inference_steps,
-        "compile_unet": args.compile_unet,
+        "compile_unet": args.compile_transformer if "PixArt" in pipeline_cls else args.compile_unet,
         "compile_vae": args.compile_vae,
         "compile_mode": args.compile_mode,
         "change_comp_config": args.change_comp_config,
@@ -93,21 +101,35 @@ def generate_csv_dict(
         "actual_gpu_memory (gbs)": f"{(TOTAL_GPU_MEMORY):.3f}",
         "tag": args.tag,
     }
+    if "PixArt" in pipeline_cls:
+        data_dict["compile_transformer"] = data_dict.pop("compile_unet")
     return data_dict
 
 
-def write_to_csv(file_name: str, data_dict: Dict[str, Union[str, bool, float]]):
+def write_to_csv(file_name: str, data_dict: Dict[str, Union[str, bool, float]], is_pixart=False):
     """Serializes a dictionary into a CSV file."""
+    fields_copy = copy.deepcopy(BENCHMARK_FIELDS)
+    fields = BENCHMARK_FIELDS
+    if is_pixart:
+        i = BENCHMARK_FIELDS.index("compile_unet")
+        fields_copy[i] = "compile_transformer"
+        fields = fields_copy
     with open(file_name, mode="w", newline="") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=BENCHMARK_FIELDS)
+        writer = csv.DictWriter(csvfile, fieldnames=fields)
         writer.writeheader()
         writer.writerow(data_dict)
 
 
-def collate_csv(input_files: List[str], output_file: str):
+def collate_csv(input_files: List[str], output_file: str, is_pixart=False):
     """Collates multiple identically structured CSVs into a single CSV file."""
+    fields_copy = copy.deepcopy(BENCHMARK_FIELDS)
+    fields = BENCHMARK_FIELDS
+    if is_pixart:
+        i = BENCHMARK_FIELDS.index("compile_unet")
+        fields_copy[i] = "compile_transformer"
+        fields = fields_copy
     with open(output_file, mode="w", newline="") as outfile:
-        writer = csv.DictWriter(outfile, fieldnames=BENCHMARK_FIELDS)
+        writer = csv.DictWriter(outfile, fieldnames=fields)
         writer.writeheader()
 
         for file in input_files:
