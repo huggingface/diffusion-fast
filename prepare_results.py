@@ -87,7 +87,8 @@ def prepare_plot(df, args):
 
 def main(args):
     all_csvs = sorted(glob.glob(f"{args.base_path}/*.csv"))
-    collate_csv(all_csvs, args.final_csv_filename)
+    is_pixart = "PixArt-alpha" is all_csvs[0]
+    collate_csv(all_csvs, args.final_csv_filename, is_pixart=is_pixart)
 
     if args.push_to_hub:
         upload_file(
