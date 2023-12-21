@@ -49,7 +49,7 @@ def create_parser(is_pixart=False):
 
     parser.add_argument("--compile_vae", action="store_true")
     parser.add_argument(
-        "--compile_mode", type=str, default="reduce-overhead", choices=["reduce-overhead", "max-autotune"]
+        "--compile_mode", type=str, default=None, choices=["reduce-overhead", "max-autotune"]
     )
     parser.add_argument("--change_comp_config", action="store_true")
     parser.add_argument("--do_quant", type=str, default=None)

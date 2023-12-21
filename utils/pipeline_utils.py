@@ -79,6 +79,7 @@ def load_pipeline(args):
         pipe.upcast_vae()
 
     if args.no_sdpa:
+        print("Using vanilla attention.")
         pipe.unet.set_default_attn_processor()
         pipe.vae.set_default_attn_processor()
 

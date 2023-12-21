@@ -65,6 +65,7 @@ def load_pipeline(args):
         pipe.fuse_qkv_projections()
 
     if args.no_sdpa:
+        print("Using vanilla attention.")
         pipe.transformer.set_default_attn_processor()
         pipe.vae.set_default_attn_processor()
 
