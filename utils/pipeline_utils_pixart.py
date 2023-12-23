@@ -9,10 +9,6 @@ from torchao.quantization import (
 from diffusers import DiffusionPipeline
 
 
-CKPT_ID = "PixArt-alpha/PixArt-XL-2-1024-MS"
-PROMPT = "ghibli style, a fantasy landscape with castles"
-
-
 def dynamic_quant_filter_fn(mod, *args):
     return (
         isinstance(mod, torch.nn.Linear)
@@ -58,7 +54,7 @@ def load_pipeline(args):
 
     dtype = torch.float32 if args.no_bf16 else torch.bfloat16
     print(f"Using dtype: {dtype}")
-    pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype)
+    pipe = DiffusionPipeline.from_pretrained(args.ckpt, torch_dtype=dtype)
 
     if args.enable_fused_projections:
         print("Enabling fused QKV projections for both Transformer and VAE.")

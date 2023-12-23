@@ -9,7 +9,6 @@ from torchao.quantization import (
 from diffusers import AutoencoderKL, DiffusionPipeline, DPMSolverMultistepScheduler
 
 
-CKPT_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 PROMPT = "ghibli style, a fantasy landscape with castles"
 
 
@@ -59,22 +58,25 @@ def load_pipeline(args):
     dtype = torch.float32 if args.no_bf16 else torch.bfloat16
     print(f"Using dtype: {dtype}")
 
-    if CKPT_ID != "runwayml/stable-diffusion-v1-5":
-        pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True)
+    if args.ckpt != "runwayml/stable-diffusion-v1-5":
+        pipe = DiffusionPipeline.from_pretrained(args.ckpt, torch_dtype=dtype, use_safetensors=True)
     else:
-        pipe = DiffusionPipeline.from_pretrained(CKPT_ID, torch_dtype=dtype, use_safetensors=True, safety_checker=None)
+        pipe = DiffusionPipeline.from_pretrained(
+            args.ckpt, torch_dtype=dtype, use_safetensors=True, safety_checker=None
+        )
         # As the default scheduler of SD v1-5 doesn't have sigmas device placement
         # (https://github.com/huggingface/diffusers/pull/6173)
         pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
 
-    if not args.upcast_vae and CKPT_ID != "runwayml/stable-diffusion-v1-5":
+    if not args.upcast_vae and args.ckpt != "runwayml/stable-diffusion-v1-5":
+        print("Using a more numerically stable VAE.")
         pipe.vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=dtype)
 
     if args.enable_fused_projections:
         print("Enabling fused QKV projections for both UNet and VAE.")
         pipe.fuse_qkv_projections()
 
-    if args.upcast_vae and CKPT_ID != "runwayml/stable-diffusion-v1-5":
+    if args.upcast_vae and args.ckpt != "runwayml/stable-diffusion-v1-5":
         print("Upcasting VAE.")
         pipe.upcast_vae()
 
@@ -87,7 +89,7 @@ def load_pipeline(args):
 
     if args.compile_unet:
         pipe.unet.to(memory_format=torch.channels_last)
-        print("Compile UNet")
+        print("Compile UNet.")
         swap_conv2d_1x1_to_linear(pipe.unet, conv_filter_fn)
         if args.compile_mode == "max-autotune" and args.change_comp_config:
             torch._inductor.config.conv_1x1_as_mm = True
@@ -96,7 +98,7 @@ def load_pipeline(args):
             torch._inductor.config.coordinate_descent_check_all_directions = True
 
         if args.do_quant:
-            print("Apply quantization to UNet")
+            print("Apply quantization to UNet.")
             if args.do_quant == "int4weightonly":
                 change_linear_weights_to_int4_woqtensors(pipe.unet)
             elif args.do_quant == "int8weightonly":
@@ -112,7 +114,7 @@ def load_pipeline(args):
 
     if args.compile_vae:
         pipe.vae.to(memory_format=torch.channels_last)
-        print("Compile VAE")
+        print("Compile VAE.")
         swap_conv2d_1x1_to_linear(pipe.vae, conv_filter_fn)
 
         if args.compile_mode == "max-autotune" and args.change_comp_config:
@@ -122,7 +124,7 @@ def load_pipeline(args):
             torch._inductor.config.coordinate_descent_check_all_directions = True
 
         if args.do_quant:
-            print("Apply quantization to VAE")
+            print("Apply quantization to VAE.")
             if args.do_quant == "int4weightonly":
                 change_linear_weights_to_int4_woqtensors(pipe.vae)
             elif args.do_quant == "int8weightonly":

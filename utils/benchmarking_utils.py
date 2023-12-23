@@ -33,6 +33,9 @@ TOTAL_GPU_MEMORY = torch.cuda.get_device_properties(0).total_memory / (1024**3)
 def create_parser(is_pixart=False):
     """Creates CLI args parser."""
     parser = argparse.ArgumentParser()
+
+    parser.add_argument("--ckpt", type=str, default="stabilityai/stable-diffusion-xl-base-1.0", required=True)
+    parser.add_argument("--prompt", type=str, default="ghibli style, a fantasy landscape with castles", required=True)
     parser.add_argument("--no_bf16", action="store_true")
     parser.add_argument("--no_sdpa", action="store_true")
     parser.add_argument("--batch_size", type=int, default=1)
@@ -48,9 +51,7 @@ def create_parser(is_pixart=False):
         parser.add_argument("--compile_unet", action="store_true")
 
     parser.add_argument("--compile_vae", action="store_true")
-    parser.add_argument(
-        "--compile_mode", type=str, default=None, choices=["reduce-overhead", "max-autotune"]
-    )
+    parser.add_argument("--compile_mode", type=str, default=None, choices=["reduce-overhead", "max-autotune"])
     parser.add_argument("--change_comp_config", action="store_true")
     parser.add_argument("--do_quant", type=str, default=None)
     parser.add_argument("--tag", type=str, default="")
@@ -78,13 +79,11 @@ def benchmark_fn(f, *args, **kwargs):
     return f"{(t0.blocked_autorange().mean):.3f}"
 
 
-def generate_csv_dict(
-    pipeline_cls: str, ckpt: str, args, time: float, memory: float
-) -> Dict[str, Union[str, bool, float]]:
+def generate_csv_dict(pipeline_cls: str, args, time: float, memory: float) -> Dict[str, Union[str, bool, float]]:
     """Packs benchmarking data into a dictionary for latter serialization."""
     data_dict = {
         "pipeline_cls": pipeline_cls,
-        "ckpt_id": ckpt,
+        "ckpt_id": args.ckpt,
         "bf16": not args.no_bf16,
         "sdpa": not args.no_sdpa,
         "fused_qkv_projections": args.enable_fused_projections,
