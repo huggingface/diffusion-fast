@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ..
+# From diffusion-fast source directory.
 
 python run_benchmark_pixart.py --ckpt "PixArt-alpha/PixArt-XL-2-1024-MS" --no_sdpa --no_bf16 && \
 python run_benchmark_pixart.py --ckpt "PixArt-alpha/PixArt-XL-2-1024-MS" --compile_transformer --compile_mode=max-autotune --compile_vae --change_comp_config && \

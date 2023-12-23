@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ..
+# From diffusion-fast source directory.
 
 python run_benchmark.py --no_sdpa --no_bf16 && \
 python run_benchmark.py --compile_unet --compile_mode=max-autotune --compile_vae --change_comp_config && \
