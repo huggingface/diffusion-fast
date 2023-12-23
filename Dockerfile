@@ -20,7 +20,7 @@ RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 RUN python3 -m pip install --no-cache-dir --upgrade pip && \
-    python3 -m pip install --no-cache-dir --pre torch --index-url https://download.pytorch.org/whl/nightly/cu121 && \
+    python3 -m pip install --no-cache-dir --pre torch==2.3.0.dev20231218+cu121 --index-url https://download.pytorch.org/whl/nightly/cu121 && \
     python3 -m pip install --no-cache-dir \
     accelerate \
     transformers \
