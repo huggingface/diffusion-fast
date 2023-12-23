@@ -23,14 +23,10 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip && \
     python3 -m pip install --no-cache-dir --pre torch --index-url https://download.pytorch.org/whl/nightly/cu121 && \
     python3 -m pip install --no-cache-dir \
     accelerate \
-    Jinja2 \
     transformers \
-    peft \
-    pandas \ 
-    matplotlib \
-    seaborn 
+    peft 
 
 RUN python3 -m pip install --no-cache-dir git+https://github.com/huggingface/diffusers@4836cfad9836e6742a1d09462f85313534388a48
-RUN python3 -m pip install --no-cache-dir git+https://github.com/pytorch-labs/ao@9aaf3ec704d659a860c5976771bca05637ca98ad
+RUN python3 -m pip install --no-cache-dir git+https://github.com/pytorch-labs/ao@54bcd5a10d0abbe7b0c045052029257099f83fd9
 
 CMD ["/bin/bash"]
