@@ -14,12 +14,12 @@ from utils.benchmarking_utils import (  # noqa: E402
     generate_csv_dict,
     write_to_csv,
 )
-from utils.pipeline_utils_pixart import CKPT_ID, PROMPT, load_pipeline  # noqa: E402
+from utils.pipeline_utils_pixart import load_pipeline  # noqa: E402
 
 
 def run_inference(pipe, args):
     _ = pipe(
-        prompt=PROMPT,
+        prompt=args.prompt,
         num_inference_steps=args.num_inference_steps,
         num_images_per_prompt=args.batch_size,
     )
@@ -38,13 +38,12 @@ def main(args) -> dict:
 
     data_dict = generate_csv_dict(
         pipeline_cls=str(pipeline.__class__.__name__),
-        ckpt=CKPT_ID,
         args=args,
         time=time,
         memory=memory,
     )
     img = pipeline(
-        prompt=PROMPT,
+        prompt=args.prompt,
         num_inference_steps=args.num_inference_steps,
         num_images_per_prompt=args.batch_size,
     ).images[0]
@@ -60,7 +59,7 @@ if __name__ == "__main__":
     data_dict, img = main(args)
 
     name = (
-        CKPT_ID.replace("/", "_")
+        args.ckpt.replace("/", "_")
         + f"bf16@{not args.no_bf16}-sdpa@{not args.no_sdpa}-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@NA-steps@{args.num_inference_steps}-transformer@{args.compile_transformer}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}-tag@{args.tag}.csv"
     )
     img.save(f"{name}.jpeg")

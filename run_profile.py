@@ -14,7 +14,7 @@ import sys  # noqa: E402
 
 sys.path.append(".")
 from utils.benchmarking_utils import create_parser  # noqa: E402
-from utils.pipeline_utils import CKPT_ID, PROMPT, load_pipeline  # noqa: E402
+from utils.pipeline_utils import load_pipeline  # noqa: E402
 
 
 def profiler_runner(path, fn, *args, **kwargs):
@@ -28,7 +28,7 @@ def profiler_runner(path, fn, *args, **kwargs):
 
 def run_inference(pipe, args):
     _ = pipe(
-        prompt=PROMPT,
+        prompt=args.prompt,
         num_inference_steps=args.num_inference_steps,
         num_images_per_prompt=args.batch_size,
     )
@@ -42,7 +42,7 @@ def main(args) -> dict:
     run_inference(pipeline, args)
 
     trace_path = (
-        CKPT_ID.replace("/", "_")
+        args.ckpt.replace("/", "_")
         + f"bf16@{not args.no_bf16}-sdpa@{not args.no_sdpa}-bs@{args.batch_size}-fuse@{args.enable_fused_projections}-upcast_vae@{args.upcast_vae}-steps@{args.num_inference_steps}-unet@{args.compile_unet}-vae@{args.compile_vae}-mode@{args.compile_mode}-change_comp_config@{args.change_comp_config}-do_quant@{args.do_quant}.json"
     )
     runner = functools.partial(profiler_runner, trace_path)
