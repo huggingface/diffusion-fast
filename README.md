@@ -20,7 +20,7 @@ Summary of the optimizations:
 
 We rely on pure PyTorch for the optimizations. You can refer to the [Dockerfile](./Dockerfile) to get the complete development environment setup. 
 
-For hardware, we used an 80GB 400W A100 GPU with its memory clock set to the maximum rate.
+For hardware, we used an 80GB 400W A100 GPU with its memory clock set to the maximum rate (1593 in our case).
 
 ## Running a benchmarking experiment 🏎️
 
