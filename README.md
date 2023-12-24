@@ -6,7 +6,7 @@ Repository for the blog post: **Accelerating Generative AI Part III: Diffusion, 
 
 <img src="https://huggingface.co/datasets/sayakpaul/sample-datasets/resolve/main/final-results-diffusion-fast/SDXL%2C_Batch_Size%3A_1%2C_Steps%3A_30.png" width=500>
 
-</div>
+</div><br>
 
 Summary of the optimizations:
 
@@ -15,6 +15,13 @@ Summary of the optimizations:
 * `torch.compile`
 * Combining q,k,v projections for attention computation
 * Dynamic int8 quantization 
+
+Table of contents:
+
+* [Setup](#setup-🛠️)
+* [Running benchmarking experiments](#running-a-benchmarking-experiment-🏎️)
+* [Code](#improvements-progressively-📈-📊)
+* [Results from other pipelines](#results-from-other-pipelines-🌋)
 
 ## Setup 🛠️
 
