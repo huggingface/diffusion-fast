@@ -75,6 +75,7 @@ With this, we're at:
 
 ```python
 from diffusers import StableDiffusionXLPipeline
+import torch
 
 pipe = StableDiffusionXLPipeline.from_pretrained(
 	"stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16
@@ -101,6 +102,7 @@ image = pipe(prompt, num_inference_steps=30).images[0]
 
 ```python
 from diffusers import StableDiffusionXLPipeline
+import torch
 
 pipe = StableDiffusionXLPipeline.from_pretrained(
 	"stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16
@@ -125,6 +127,12 @@ image = pipe(prompt, num_inference_steps=30).images[0]
 from diffusers import StableDiffusionXLPipeline
 import torch
 
+# Set the following compiler flags to make things go brrr.
+torch._inductor.config.conv_1x1_as_mm = True
+torch._inductor.config.coordinate_descent_tuning = True
+torch._inductor.config.epilogue_fusion = False
+torch._inductor.config.coordinate_descent_check_all_directions = True
+
 pipe = StableDiffusionXLPipeline.from_pretrained(
     "stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16
 ).to("cuda")
@@ -142,6 +150,164 @@ image = pipe(prompt).images[0]
 <div align="center">
 
 <img src="https://huggingface.co/datasets/sayakpaul/sample-datasets/resolve/main/progressive-acceleration-sdxl/SDXL%2C_Batch_Size%3A_1%2C_Steps%3A_30_3.png" width=500>
+
+</div>
+
+</details>
+
+<details>
+  <summary>Combining attention projection matrices</summary>
+
+```python
+from diffusers import StableDiffusionXLPipeline
+import torch
+
+# Set the compiler flags like above.
+####################################
+
+pipe = StableDiffusionXLPipeline.from_pretrained(
+    "stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16
+).to("cuda")
+
+# Combine attention projection matrices.
+pipe.fuse_qkv_projections()
+
+# Compile the UNet and VAE.
+pipe.unet.to(memory_format=torch.channels_last)
+pipe.vae.to(memory_format=torch.channels_last)
+pipe.unet = torch.compile(pipe.unet, mode="max-autotune", fullgraph=True)
+pipe.vae.decode = torch.compile(pipe.vae.decode, mode="max-autotune", fullgraph=True)
+
+prompt = "Astronaut in a jungle, cold color palette, muted colors, detailed, 8k"
+
+# First call to `pipe` will be slow, subsequent ones will be faster.
+image = pipe(prompt).images[0]
+```
+
+<div align="center">
+
+<img src="https://huggingface.co/datasets/sayakpaul/sample-datasets/resolve/main/progressive-acceleration-sdxl/SDXL%2C_Batch_Size%3A_1%2C_Steps%3A_30_4.png" width=500>
+
+</div>
+
+</details>
+
+<details>
+  <summary>Dynamic quantization</summary>
+
+```python
+from diffusers import StableDiffusionXLPipeline
+
+# Set compiler flags.
+torch._inductor.config.conv_1x1_as_mm = True
+torch._inductor.config.coordinate_descent_tuning = True
+torch._inductor.config.epilogue_fusion = False
+torch._inductor.config.coordinate_descent_check_all_directions = True
+torch._inductor.config.force_fuse_int_mm_with_mul = True
+torch._inductor.config.use_mixed_mm = True
+
+def dynamic_quant_filter_fn(mod, *args):
+    return (
+        isinstance(mod, torch.nn.Linear)
+        and mod.in_features > 16
+        and (mod.in_features, mod.out_features)
+        not in [
+            (1280, 640),
+            (1920, 1280),
+            (1920, 640),
+            (2048, 1280),
+            (2048, 2560),
+            (2560, 1280),
+            (256, 128),
+            (2816, 1280),
+            (320, 640),
+            (512, 1536),
+            (512, 256),
+            (512, 512),
+            (640, 1280),
+            (640, 1920),
+            (640, 320),
+            (640, 5120),
+            (640, 640),
+            (960, 320),
+            (960, 640),
+        ]
+    )
+
+
+def conv_filter_fn(mod, *args):
+    return (
+        isinstance(mod, torch.nn.Conv2d) and mod.kernel_size == (1, 1) and 128 in [mod.in_channels, mod.out_channels]
+    )
+
+pipe = StableDiffusionXLPipeline.from_pretrained(
+	"stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16
+).to("cuda")
+
+# Combine attention projection matrices.
+pipe.fuse_qkv_projections()
+
+# Change the memory layout.
+pipe.unet.to(memory_format=torch.channels_last)
+pipe.vae.to(memory_format=torch.channels_last)
+
+# Swap the pointwise convs with linears.
+swap_conv2d_1x1_to_linear(pipe.unet, conv_filter_fn)
+swap_conv2d_1x1_to_linear(pipe.vae, conv_filter_fn)
+
+# Apply dynamic quantization.
+apply_dynamic_quant(pipe.unet, dynamic_quant_filter_fn)
+apply_dynamic_quant(pipe.vae, dynamic_quant_filter_fn)
+
+# Compile.
+pipe.unet = torch.compile(pipe.unet, mode="max-autotune", fullgraph=True)
+pipe.vae.decode = torch.compile(pipe.vae.decode, mode="max-autotune", fullgraph=True)
+
+prompt = "Astronaut in a jungle, cold color palette, muted colors, detailed, 8k"
+image = pipe(prompt, num_inference_steps=30).images[0]
+```
+
+<div align="center">
+
+<img src="https://huggingface.co/datasets/sayakpaul/sample-datasets/resolve/main/progressive-acceleration-sdxl/SDXL%2C_Batch_Size%3A_1%2C_Steps%3A_30_5.png" width=500>
+
+</div>
+
+</details>
+
+## Results from other pipelines 🌋
+
+<details>
+  <summary>SSD-1B</summary>
+
+<div align="center">
+
+<img src="https://huggingface.co/datasets/sayakpaul/sample-datasets/resolve/main/final-results-diffusion-fast/SDXL%2C_Batch_Size%3A_1%2C_Steps%3A_30.png" width=500>
+<sup><a href="https://huggingface.co/segmind/SSD-1B">segmind/SSD-1B</a></sup>
+
+</div>
+
+</details>
+
+<details>
+  <summary>SD v1-5</summary>
+
+<div align="center">
+
+<img src="https://huggingface.co/datasets/sayakpaul/sample-datasets/resolve/main/final-results-diffusion-fast/SD_v1-5%2C_Batch_Size%3A_1%2C_Steps%3A_30.png" width=500>
+<sup><a href="https://huggingface.co/runwayml/stable-diffusion-v1-5">runwayml/stable-diffusion-v1-5</a></sup>
+
+</div>
+
+</details>
+
+<details>
+  <summary>Pixrt-Alpha</summary>
+
+<div align="center">
+
+<img src="https://huggingface.co/datasets/sayakpaul/sample-datasets/resolve/main/final-results-diffusion-fast/PixArt-%24%5Calpha%24%2C_Batch_Size%3A_1%2C_Steps%3A_30.png" width=500>
+<sup><a href="https://huggingface.co/PixArt-alpha/PixArt-XL-2-1024-MS">PixArt-alpha/PixArt-XL-2-1024-MS</a></sup>
 
 </div>
 
