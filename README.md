@@ -282,7 +282,7 @@ image = pipe(prompt, num_inference_steps=30).images[0]
 
 <div align="center">
 
-<img src="https://huggingface.co/datasets/sayakpaul/sample-datasets/resolve/main/final-results-diffusion-fast/SDXL%2C_Batch_Size%3A_1%2C_Steps%3A_30.png" width=500>
+<img src="https://huggingface.co/datasets/sayakpaul/sample-datasets/resolve/main/final-results-diffusion-fast/SSD-1B%2C_Batch_Size%3A_1%2C_Steps%3A_30.png" width=500>
 <sup><a href="https://huggingface.co/segmind/SSD-1B">segmind/SSD-1B</a></sup>
 
 </div>
