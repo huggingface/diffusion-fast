@@ -34,8 +34,8 @@ def create_parser(is_pixart=False):
     """Creates CLI args parser."""
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--ckpt", type=str, default="stabilityai/stable-diffusion-xl-base-1.0", required=True)
-    parser.add_argument("--prompt", type=str, default="ghibli style, a fantasy landscape with castles", required=True)
+    parser.add_argument("--ckpt", type=str, default="stabilityai/stable-diffusion-xl-base-1.0")
+    parser.add_argument("--prompt", type=str, default="ghibli style, a fantasy landscape with castles")
     parser.add_argument("--no_bf16", action="store_true")
     parser.add_argument("--no_sdpa", action="store_true")
     parser.add_argument("--batch_size", type=int, default=1)
