@@ -145,13 +145,15 @@ pipe = StableDiffusionXLPipeline.from_pretrained(
 ).to("cuda")
 
 # Compile the UNet and VAE.
+pipe.unet.to(memory_format=torch.channels_last)
+pipe.vae.to(memory_format=torch.channels_last)
 pipe.unet = torch.compile(pipe.unet, mode="max-autotune", fullgraph=True)
 pipe.vae.decode = torch.compile(pipe.vae.decode, mode="max-autotune", fullgraph=True)
 
 prompt = "Astronaut in a jungle, cold color palette, muted colors, detailed, 8k"
 
 # First call to `pipe` will be slow, subsequent ones will be faster.
-image = pipe(prompt).images[0]
+image = pipe(prompt, num_inference_steps=30).images[0]
 ```
 
 <div align="center">
@@ -188,7 +190,7 @@ pipe.vae.decode = torch.compile(pipe.vae.decode, mode="max-autotune", fullgraph=
 prompt = "Astronaut in a jungle, cold color palette, muted colors, detailed, 8k"
 
 # First call to `pipe` will be slow, subsequent ones will be faster.
-image = pipe(prompt).images[0]
+image = pipe(prompt, num_inference_steps=30).images[0]
 ```
 
 <div align="center">
@@ -204,14 +206,12 @@ image = pipe(prompt).images[0]
 
 ```python
 from diffusers import StableDiffusionXLPipeline
+import torch
 
-# Set compiler flags.
-torch._inductor.config.conv_1x1_as_mm = True
-torch._inductor.config.coordinate_descent_tuning = True
-torch._inductor.config.epilogue_fusion = False
-torch._inductor.config.coordinate_descent_check_all_directions = True
-torch._inductor.config.force_fuse_int_mm_with_mul = True
-torch._inductor.config.use_mixed_mm = True
+from torchao.quantization import apply_dynamic_quant, swap_conv2d_1x1_to_linear
+
+# Set compiler flags just like above.
+#####################################
 
 def dynamic_quant_filter_fn(mod, *args):
     return (
