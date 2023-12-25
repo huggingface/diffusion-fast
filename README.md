@@ -46,6 +46,14 @@ Refer to the [`experiment-scripts/run_sd.sh`](./experiment-scripts/run_sd.sh) fo
 
 _(Support for PixArt-Alpha is experimental.)_
 
+You can use the [`prepare_results.py`](./prepare_results.py) script to generate a consolidated CSV file and a plot to visualize the results from it. This is best used after you have run a couple of benchmarking experiments already and have their corresponding CSV files.
+
+To run the script, you need the following dependencies:
+
+* pandas
+* matplotlib
+* seaborn
+
 ## Improvements, progressively 📈 📊
 
 <details>
@@ -128,7 +136,7 @@ image = pipe(prompt, num_inference_steps=30).images[0]
 </details>
 
 <details>
-  <summary>torch.compile</summary>
+  <summary>torch.compile</summary><br>
 
 First, configure some compiler flags:
 
@@ -175,7 +183,7 @@ image = pipe(prompt, num_inference_steps=30).images[0]
 </details>
 
 <details>
-  <summary>Combining attention projection matrices</summary>
+  <summary>Combining attention projection matrices</summary><br>
 
 ```python
 from diffusers import StableDiffusionXLPipeline
@@ -215,7 +223,7 @@ image = pipe(prompt, num_inference_steps=30).images[0]
 </details>
 
 <details>
-  <summary>Dynamic quantization</summary>
+  <summary>Dynamic quantization</summary><br>
 
 Start by setting the compiler flags (this time, we have two new):
 
