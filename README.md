@@ -130,6 +130,8 @@ image = pipe(prompt, num_inference_steps=30).images[0]
 <details>
   <summary>torch.compile</summary>
 
+First, configure some compiler flags:
+
 ```python
 from diffusers import StableDiffusionXLPipeline
 import torch
@@ -139,11 +141,19 @@ torch._inductor.config.conv_1x1_as_mm = True
 torch._inductor.config.coordinate_descent_tuning = True
 torch._inductor.config.epilogue_fusion = False
 torch._inductor.config.coordinate_descent_check_all_directions = True
+```
 
+Then load the pipeline:
+
+```python
 pipe = StableDiffusionXLPipeline.from_pretrained(
     "stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16
 ).to("cuda")
+```
 
+Compile and perform inference:
+
+```python
 # Compile the UNet and VAE.
 pipe.unet.to(memory_format=torch.channels_last)
 pipe.vae.to(memory_format=torch.channels_last)
@@ -171,8 +181,11 @@ image = pipe(prompt, num_inference_steps=30).images[0]
 from diffusers import StableDiffusionXLPipeline
 import torch
 
-# Set the compiler flags like above.
-####################################
+# Configure the compiler flags.
+torch._inductor.config.conv_1x1_as_mm = True
+torch._inductor.config.coordinate_descent_tuning = True
+torch._inductor.config.epilogue_fusion = False
+torch._inductor.config.coordinate_descent_check_all_directions = True
 
 pipe = StableDiffusionXLPipeline.from_pretrained(
     "stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16
@@ -204,15 +217,26 @@ image = pipe(prompt, num_inference_steps=30).images[0]
 <details>
   <summary>Dynamic quantization</summary>
 
+Start by setting the compiler flags (this time, we have two new):
+
 ```python
 from diffusers import StableDiffusionXLPipeline
 import torch
 
 from torchao.quantization import apply_dynamic_quant, swap_conv2d_1x1_to_linear
 
-# Set compiler flags just like above.
-#####################################
+# Compiler flags. There are two new.
+torch._inductor.config.conv_1x1_as_mm = True
+torch._inductor.config.coordinate_descent_tuning = True
+torch._inductor.config.epilogue_fusion = False
+torch._inductor.config.coordinate_descent_check_all_directions = True
+torch._inductor.config.force_fuse_int_mm_with_mul = True
+torch._inductor.config.use_mixed_mm = True
+```
 
+Then write the filtering functions to apply dynamic quantization:
+
+```python
 def dynamic_quant_filter_fn(mod, *args):
     return (
         isinstance(mod, torch.nn.Linear)
@@ -246,7 +270,11 @@ def conv_filter_fn(mod, *args):
     return (
         isinstance(mod, torch.nn.Conv2d) and mod.kernel_size == (1, 1) and 128 in [mod.in_channels, mod.out_channels]
     )
+```
 
+Then we're rwady for inference:
+
+```python
 pipe = StableDiffusionXLPipeline.from_pretrained(
 	"stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16
 ).to("cuda")
