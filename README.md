@@ -1,6 +1,6 @@
 # Diffusion, fast
 
-Repository for the blog post: **Accelerating Generative AI Part III: Diffusion, Fast** (TODO).
+Repository for the blog post: **Accelerating Generative AI Part III: Diffusion, Fast** (TODO). You can find a run down of the techniques on the [🤗 Diffusers website](https://huggingface.co/docs/diffusers/main/en/tutorials/fast_diffusion) too. 
 
 <div align="center">
 
@@ -15,6 +15,8 @@ Summary of the optimizations:
 * `torch.compile`
 * Combining q,k,v projections for attention computation
 * Dynamic int8 quantization 
+
+These techniques are fairly generalizable to other pipelines too, as we show below.
 
 Table of contents:
 
@@ -345,7 +347,7 @@ image = pipe(prompt, num_inference_steps=30).images[0]
 </details>
 
 <details>
-  <summary>Pixrt-Alpha</summary>
+  <summary>Pixart-Alpha</summary>
 
 <div align="center">
 

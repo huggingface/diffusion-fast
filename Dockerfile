@@ -26,7 +26,7 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip && \
     transformers \
     peft 
 
-RUN python3 -m pip install --no-cache-dir git+https://github.com/huggingface/diffusers@4836cfad9836e6742a1d09462f85313534388a48
+RUN python3 -m pip install  --no-cache-dir diffusers==0.25.0
 RUN python3 -m pip install --no-cache-dir git+https://github.com/pytorch-labs/ao@54bcd5a10d0abbe7b0c045052029257099f83fd9
 
 CMD ["/bin/bash"]
