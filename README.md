@@ -112,6 +112,8 @@ image = pipe(prompt, num_inference_steps=30).images[0]
 
 </div>
 
+> 💡 We later ran the experiments in float16 and found out that the recent versions of `torchao` do not incur numerical problems from float16.
+
 </details>
 
 <details>
