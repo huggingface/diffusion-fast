@@ -1,6 +1,6 @@
 # Diffusion, fast
 
-Repository for the blog post: **Accelerating Generative AI Part III: Diffusion, Fast** (TODO). You can find a run down of the techniques on the [🤗 Diffusers website](https://huggingface.co/docs/diffusers/main/en/tutorials/fast_diffusion) too. 
+Repository for the blog post: [**Accelerating Generative AI Part III: Diffusion, Fast**](https://pytorch.org/blog/accelerating-generative-ai-3/). You can find a run down of the techniques on the [🤗 Diffusers website](https://huggingface.co/docs/diffusers/main/en/tutorials/fast_diffusion) too. 
 
 <div align="center">
 
