@@ -26,7 +26,18 @@ def run_inference(pipe, args):
 
 
 def main(args) -> dict:
-    pipeline = load_pipeline(args)
+    pipeline = load_pipeline(
+        ckpt=args.ckpt,
+        compile_unet=args.compile_unet,
+        compile_vae=args.compile_vae,
+        no_sdpa=args.no_sdpa,
+        no_bf16=args.no_bf16,
+        upcast_vae=args.upcast_vae,
+        enable_fused_projections=args.enable_fused_projections,
+        do_quant=args.do_quant,
+        compile_mode=args.compile_mode,
+        change_comp_config=args.change_comp_config,
+    )
 
     # Warmup.
     run_inference(pipeline, args)

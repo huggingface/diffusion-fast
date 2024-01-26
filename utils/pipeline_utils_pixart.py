@@ -44,79 +44,89 @@ def conv_filter_fn(mod, *args):
     )
 
 
-def load_pipeline(args):
+def load_pipeline(
+    ckpt: str,
+    compile_transformer: bool,
+    compile_vae: bool,
+    no_sdpa: bool,
+    no_bf16: bool,
+    enable_fused_projections: bool,
+    do_quant: bool,
+    compile_mode: str,
+    change_comp_config: bool,
+):
     """Loads the PixArt-Alpha pipeline."""
 
-    if args.do_quant and not args.compile_transformer:
+    if do_quant and not compile_transformer:
         raise ValueError("Compilation for Transformer must be enabled when quantizing.")
-    if args.do_quant and not args.compile_vae:
+    if do_quant and not compile_vae:
         raise ValueError("Compilation for VAE must be enabled when quantizing.")
 
-    dtype = torch.float32 if args.no_bf16 else torch.bfloat16
+    dtype = torch.float32 if no_bf16 else torch.bfloat16
     print(f"Using dtype: {dtype}")
-    pipe = DiffusionPipeline.from_pretrained(args.ckpt, torch_dtype=dtype)
+    pipe = DiffusionPipeline.from_pretrained(ckpt, torch_dtype=dtype)
 
-    if args.enable_fused_projections:
+    if enable_fused_projections:
         print("Enabling fused QKV projections for both Transformer and VAE.")
         pipe.fuse_qkv_projections()
 
-    if args.no_sdpa:
+    if no_sdpa:
         print("Using vanilla attention.")
         pipe.transformer.set_default_attn_processor()
         pipe.vae.set_default_attn_processor()
 
     pipe = pipe.to("cuda")
 
-    if args.compile_transformer:
+    if compile_transformer:
         pipe.transformer.to(memory_format=torch.channels_last)
         print("Compile Transformer")
         swap_conv2d_1x1_to_linear(pipe.transformer, conv_filter_fn)
-        if args.compile_mode == "max-autotune" and args.change_comp_config:
+        if compile_mode == "max-autotune" and change_comp_config:
             torch._inductor.config.conv_1x1_as_mm = True
             torch._inductor.config.coordinate_descent_tuning = True
             torch._inductor.config.epilogue_fusion = False
             torch._inductor.config.coordinate_descent_check_all_directions = True
 
-        if args.do_quant:
+        if do_quant:
             print("Apply quantization to Transformer")
-            if args.do_quant == "int4weightonly":
+            if do_quant == "int4weightonly":
                 change_linear_weights_to_int4_woqtensors(pipe.transformer)
-            elif args.do_quant == "int8weightonly":
+            elif do_quant == "int8weightonly":
                 change_linear_weights_to_int8_woqtensors(pipe.transformer)
-            elif args.do_quant == "int8dynamic":
+            elif do_quant == "int8dynamic":
                 apply_dynamic_quant(pipe.transformer, dynamic_quant_filter_fn)
             else:
-                raise ValueError(f"Unknown do_quant value: {args.do_quant}.")
+                raise ValueError(f"Unknown do_quant value: {do_quant}.")
             torch._inductor.config.force_fuse_int_mm_with_mul = True
             torch._inductor.config.use_mixed_mm = True
 
-        pipe.transformer = torch.compile(pipe.transformer, mode=args.compile_mode, fullgraph=True)
+        pipe.transformer = torch.compile(pipe.transformer, mode=compile_mode, fullgraph=True)
 
-    if args.compile_vae:
+    if compile_vae:
         pipe.vae.to(memory_format=torch.channels_last)
         print("Compile VAE")
         swap_conv2d_1x1_to_linear(pipe.vae, conv_filter_fn)
 
-        if args.compile_mode == "max-autotune" and args.change_comp_config:
+        if compile_mode == "max-autotune" and change_comp_config:
             torch._inductor.config.conv_1x1_as_mm = True
             torch._inductor.config.coordinate_descent_tuning = True
             torch._inductor.config.epilogue_fusion = False
             torch._inductor.config.coordinate_descent_check_all_directions = True
 
-        if args.do_quant:
+        if do_quant:
             print("Apply quantization to VAE")
-            if args.do_quant == "int4weightonly":
+            if do_quant == "int4weightonly":
                 change_linear_weights_to_int4_woqtensors(pipe.vae)
-            elif args.do_quant == "int8weightonly":
+            elif do_quant == "int8weightonly":
                 change_linear_weights_to_int8_woqtensors(pipe.vae)
-            elif args.do_quant == "int8dynamic":
+            elif do_quant == "int8dynamic":
                 apply_dynamic_quant(pipe.vae, dynamic_quant_filter_fn)
             else:
-                raise ValueError(f"Unknown do_quant value: {args.do_quant}.")
+                raise ValueError(f"Unknown do_quant value: {do_quant}.")
             torch._inductor.config.force_fuse_int_mm_with_mul = True
             torch._inductor.config.use_mixed_mm = True
 
-        pipe.vae.decode = torch.compile(pipe.vae.decode, mode=args.compile_mode, fullgraph=True)
+        pipe.vae.decode = torch.compile(pipe.vae.decode, mode=compile_mode, fullgraph=True)
 
     pipe.set_progress_bar_config(disable=True)
     return pipe
