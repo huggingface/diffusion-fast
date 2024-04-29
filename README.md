@@ -50,6 +50,8 @@ _(Support for PixArt-Alpha is experimental.)_
 
 You can use the [`prepare_results.py`](./prepare_results.py) script to generate a consolidated CSV file and a plot to visualize the results from it. This is best used after you have run a couple of benchmarking experiments already and have their corresponding CSV files.
 
+The script also supports CPU platforms, you can refer to the [`experiment-scripts/run_sd_cpu.sh`](./experiment-scripts/run_sd_cpu.sh) for some reference experiment commands. 
+
 To run the script, you need the following dependencies:
 
 * pandas

@@ -58,6 +58,7 @@ def load_pipeline(
     do_quant: bool,
     compile_mode: str,
     change_comp_config: bool,
+    device: str,
 ):
     """Loads the SDXL pipeline."""
 
@@ -94,7 +95,8 @@ def load_pipeline(
         pipe.unet.set_default_attn_processor()
         pipe.vae.set_default_attn_processor()
 
-    pipe = pipe.to("cuda")
+    if device == "cuda":
+        pipe = pipe.to("cuda")
 
     if compile_unet:
         pipe.unet.to(memory_format=torch.channels_last)
