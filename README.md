@@ -11,7 +11,7 @@ Repository for the blog post: [**Accelerating Generative AI Part III: Diffusion,
 Summary of the optimizations:
 
 * Running with the bfloat16 precision
-* `scaled_dot_product_attention` (SPDA)
+* `scaled_dot_product_attention` (SDPA)
 * `torch.compile`
 * Combining q,k,v projections for attention computation
 * Dynamic int8 quantization 
@@ -30,6 +30,8 @@ Table of contents:
 We rely on pure PyTorch for the optimizations. You can refer to the [Dockerfile](./Dockerfile) to get the complete development environment setup. 
 
 For hardware, we used an 80GB 400W A100 GPU with its memory clock set to the maximum rate (1593 in our case).
+
+Meanwhile, these optimizations (BFloat16, SDPA, torch.compile, Combining q,k,v projections) can run on CPU platforms as well. Experiment results will be shown in the near future.
 
 ## Running a benchmarking experiment 🏎️
 
