@@ -101,7 +101,7 @@ def generate_csv_dict(pipeline_cls: str, args, time: float) -> Dict[str, Union[s
     if args.device == "cuda":
         memory = bytes_to_giga_bytes(torch.cuda.max_memory_allocated())  # in GBs.
         TOTAL_GPU_MEMORY = torch.cuda.get_device_properties(0).total_memory / (1024**3)
-        data_dict["memory (gbs)"] = memory,
+        data_dict["memory (gbs)"] = memory
         data_dict["actual_gpu_memory (gbs)"] = f"{(TOTAL_GPU_MEMORY):.3f}"
     if "PixArt" in pipeline_cls:
         data_dict["compile_transformer"] = data_dict.pop("compile_unet")
