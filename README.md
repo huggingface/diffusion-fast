@@ -31,7 +31,7 @@ We rely on pure PyTorch for the optimizations. You can refer to the [Dockerfile]
 
 For hardware, we used an 80GB 400W A100 GPU with its memory clock set to the maximum rate (1593 in our case).
 
-Meanwhile, these optimizations (BFloat16, SDPA, torch.compile, Combining q,k,v projections) can run on CPU platforms as well. Experiment results will be shown in the near future.
+Meanwhile, these optimizations (BFloat16, SDPA, torch.compile, Combining q,k,v projections) can run on CPU platforms as well, and bring 4x latency improvement to Stable Diffusion XL (SDXL) on 4th Gen Intel® Xeon® Scalable processors.
 
 ## Running a benchmarking experiment 🏎️
 
