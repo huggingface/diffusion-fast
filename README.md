@@ -11,7 +11,7 @@ Repository for the blog post: [**Accelerating Generative AI Part III: Diffusion,
 Summary of the optimizations:
 
 * Running with the bfloat16 precision
-* `scaled_dot_product_attention` (SPDA)
+* `scaled_dot_product_attention` (SDPA)
 * `torch.compile`
 * Combining q,k,v projections for attention computation
 * Dynamic int8 quantization 
@@ -31,6 +31,8 @@ We rely on pure PyTorch for the optimizations. You can refer to the [Dockerfile]
 
 For hardware, we used an 80GB 400W A100 GPU with its memory clock set to the maximum rate (1593 in our case).
 
+Meanwhile, these optimizations (BFloat16, SDPA, torch.compile, Combining q,k,v projections) can run on CPU platforms as well, and bring 4x latency improvement to Stable Diffusion XL (SDXL) on 4th Gen Intel® Xeon® Scalable processors.
+
 ## Running a benchmarking experiment 🏎️
 
 [`run_benchmark.py`](./run_benchmark.py) is the main script for benchmarking the different optimization techniques. After an experiment has been done, you should expect to see two files:
@@ -49,6 +51,8 @@ Refer to the [`experiment-scripts/run_sd.sh`](./experiment-scripts/run_sd.sh) fo
 _(Support for PixArt-Alpha is experimental.)_
 
 You can use the [`prepare_results.py`](./prepare_results.py) script to generate a consolidated CSV file and a plot to visualize the results from it. This is best used after you have run a couple of benchmarking experiments already and have their corresponding CSV files.
+
+The script also supports CPU platforms, you can refer to the [`experiment-scripts/run_sd_cpu.sh`](./experiment-scripts/run_sd_cpu.sh) for some reference experiment commands. 
 
 To run the script, you need the following dependencies:
 

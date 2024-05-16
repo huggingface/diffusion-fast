@@ -27,7 +27,6 @@ BENCHMARK_FIELDS = [
     "actual_gpu_memory (gbs)",
     "tag",
 ]
-TOTAL_GPU_MEMORY = torch.cuda.get_device_properties(0).total_memory / (1024**3)
 
 
 def create_parser(is_pixart=False):
@@ -55,6 +54,7 @@ def create_parser(is_pixart=False):
     parser.add_argument("--change_comp_config", action="store_true")
     parser.add_argument("--do_quant", type=str, default=None)
     parser.add_argument("--tag", type=str, default="")
+    parser.add_argument("--device", type=str, choices=["cuda", "cpu"], default="cuda")
     return parser
 
 
@@ -79,7 +79,7 @@ def benchmark_fn(f, *args, **kwargs):
     return f"{(t0.blocked_autorange().mean):.3f}"
 
 
-def generate_csv_dict(pipeline_cls: str, args, time: float, memory: float) -> Dict[str, Union[str, bool, float]]:
+def generate_csv_dict(pipeline_cls: str, args, time: float) -> Dict[str, Union[str, bool, float]]:
     """Packs benchmarking data into a dictionary for latter serialization."""
     data_dict = {
         "pipeline_cls": pipeline_cls,
@@ -96,10 +96,13 @@ def generate_csv_dict(pipeline_cls: str, args, time: float, memory: float) -> Di
         "change_comp_config": args.change_comp_config,
         "do_quant": args.do_quant,
         "time (secs)": time,
-        "memory (gbs)": memory,
-        "actual_gpu_memory (gbs)": f"{(TOTAL_GPU_MEMORY):.3f}",
         "tag": args.tag,
     }
+    if args.device == "cuda":
+        memory = bytes_to_giga_bytes(torch.cuda.max_memory_allocated())  # in GBs.
+        TOTAL_GPU_MEMORY = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+        data_dict["memory (gbs)"] = memory
+        data_dict["actual_gpu_memory (gbs)"] = f"{(TOTAL_GPU_MEMORY):.3f}"
     if "PixArt" in pipeline_cls:
         data_dict["compile_transformer"] = data_dict.pop("compile_unet")
     return data_dict

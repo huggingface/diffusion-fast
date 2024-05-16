@@ -54,6 +54,7 @@ def load_pipeline(
     do_quant: bool,
     compile_mode: str,
     change_comp_config: bool,
+    device: str,
 ):
     """Loads the PixArt-Alpha pipeline."""
 
@@ -75,7 +76,8 @@ def load_pipeline(
         pipe.transformer.set_default_attn_processor()
         pipe.vae.set_default_attn_processor()
 
-    pipe = pipe.to("cuda")
+    if device == "cuda":
+        pipe = pipe.to("cuda")
 
     if compile_transformer:
         pipe.transformer.to(memory_format=torch.channels_last)
