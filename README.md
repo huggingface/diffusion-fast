@@ -8,6 +8,9 @@ Repository for the blog post: [**Accelerating Generative AI Part III: Diffusion,
 
 </div><br>
 
+> [!WARNING]  
+> This repository relies on the `torchao` package for all things quantization. Since the first version of this repo, the `torchao` package has changed its APIs significantly. More specifically, [this](https://github.com/huggingface/diffusion-fast/blob/f4fa861422d9819226eb2ceac247c85c3547130d/Dockerfile#L30) version was used to obtain the numbers in this repository. For more updated usage of `torchao`, please refer to the [`diffusers-torchao`](https://github.com/sayakpaul/diffusers-torchao) repository.
+
 Summary of the optimizations:
 
 * Running with the bfloat16 precision
