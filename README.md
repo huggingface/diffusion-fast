@@ -1,12 +1,14 @@
 # Diffusion, fast
 
-Repository for the blog post: [**Accelerating Generative AI Part III: Diffusion, Fast**](https://pytorch.org/blog/accelerating-generative-ai-3/). You can find a run down of the techniques on the [🤗 Diffusers website](https://huggingface.co/docs/diffusers/main/en/tutorials/fast_diffusion) too. 
+Repository for the blog post: [**Accelerating Generative AI Part III: Diffusion, Fast**](https://pytorch.org/blog/accelerating-generative-ai-3/). You can find a run down of the techniques on the [🤗 Diffusers website](https://huggingface.co/docs/diffusers/main/en/optimization/fp16) too. 
 
 <div align="center">
 
 <img src="https://huggingface.co/datasets/sayakpaul/sample-datasets/resolve/main/final-results-diffusion-fast/SDXL%2C_Batch_Size%3A_1%2C_Steps%3A_30.png" width=500>
 
 </div><br>
+
+Check out the Flux edition here: [huggingface/flux-fast](https://github.com/huggingface/flux-fast/).
 
 > [!WARNING]  
 > This repository relies on the `torchao` package for all things quantization. Since the first version of this repo, the `torchao` package has changed its APIs significantly. More specifically, [this](https://github.com/huggingface/diffusion-fast/blob/f4fa861422d9819226eb2ceac247c85c3547130d/Dockerfile#L30) version was used to obtain the numbers in this repository. For more updated usage of `torchao`, please refer to the [`diffusers-torchao`](https://github.com/sayakpaul/diffusers-torchao) repository.
